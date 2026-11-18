@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- A refined invitation card with a folded corner and a small golden sparkle. -->
+    <path
+        android:fillColor="#FFF8EA"
+        android:pathData="M25,30 L70,30 L84,44 L84,78 Q84,82 80,82 L28,82 Q24,82 24,78 L24,34 Q24,30 25,30 Z" />
+    <path
+        android:fillColor="#E7B85C"
+        android:pathData="M70,30 L70,42 Q70,45 73,45 L84,45 Z" />
+    <path
+        android:fillColor="#18213B"
+        android:pathData="M34,49 L73,49 L73,53 L34,53 Z M34,59 L65,59 L65,63 L34,63 Z" />
+    <path
+        android:fillColor="#D7A64A"
+        android:pathData="M48,70 C42,65 38,62 38,58 C38,53 45,51 49,57 C53,51 60,53 60,58 C60,62 55,66 49,70 Z" />
+    <path
+        android:fillColor="#E7B85C"
+        android:pathData="M78,17 L81,26 L90,29 L81,32 L78,41 L75,32 L66,29 L75,26 Z" />
+    <path
+        android:fillColor="#E7B85C"
+        android:pathData="M25,18 L27,23 L32,25 L27,27 L25,32 L23,27 L18,25 L23,23 Z" />
+</vector>
