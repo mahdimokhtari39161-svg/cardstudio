@@ -1,0 +1,12 @@
+{
+  "appId": "com.cardstudio.invitation",
+  "appName": "CardStudio",
+  "webDir": "dist",
+  "backgroundColor": "#0f1020",
+  "server": {
+    "androidScheme": "https"
+  },
+  "android": {
+    "allowMixedContent": false
+  }
+}
