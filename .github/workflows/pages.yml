@@ -30,6 +30,8 @@ jobs:
           node-version: 22
       - name: Install dependencies
         run: npm install --no-audit --no-fund
+      - name: Download and bundle CC0 music library
+        run: node scripts/download-music.mjs
       - name: Prepare web app
         run: npm run prepare-web
       - uses: actions/configure-pages@v5
