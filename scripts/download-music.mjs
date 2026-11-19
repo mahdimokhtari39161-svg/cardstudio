@@ -139,7 +139,8 @@ try {
   for (const target of wanted) {
     try {
       const search = await client.call(searchTool.name, schemaArgs(searchTool, { query: target.query, mood: target.key }));
-      console.log("Search response for", target.key, JSON.stringify(search).slice(0, 1600));\n      const items = findItems(search);\n      console.log("Candidate items:", items.length);
+      console.log("Search response for", target.key, JSON.stringify(search).slice(0, 1600));
+      const items = findItems(search);\n      console.log("Candidate items:", items.length);
       for (const item of items) {
         const title = item.title || item.name || item.slug || "Music track";
         const ident = item.slug || item.id || item.item_id || item.asset_id || item.track_id || title;
@@ -153,7 +154,8 @@ try {
           } catch {}
         }
         const downloaded = await client.call(downloadTool.name, schemaArgs(downloadTool, { item: details, identifier: ident, query: target.query }));
-        console.log("Download response:", JSON.stringify(downloaded).slice(0, 1200));\n        const url = firstAudioUrl(downloaded) || firstAudioUrl(details) || firstAudioUrl(item);
+        console.log("Download response:", JSON.stringify(downloaded).slice(0, 1200));
+        const url = firstAudioUrl(downloaded) || firstAudioUrl(details) || firstAudioUrl(item);
         if (!url) continue;
         const res = await fetch(url, { signal: AbortSignal.timeout(60000) });
         if (!res.ok) continue;
