@@ -142,7 +142,7 @@ try {
   const seen = new Set();
   for (const target of wanted) {
     try {
-      const search = await client.call(searchTool.name, schemaArgs(searchTool, { query: target.query, mood: target.key }));
+      const search = await client.call(searchTool.name, { collection: "music", q: target.query, page: 1 });
       console.log("Search response for", target.key, JSON.stringify(search).slice(0, 1600));
       const items = findItems(search);
       console.log("Candidate items:", items.length);
