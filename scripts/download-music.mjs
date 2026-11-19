@@ -193,7 +193,16 @@ try {
 }
 try {
   const sourceUrl = "https://upload.wikimedia.org/wikipedia/commons/9/90/Jawad_Syed_-_Alhamdulilah_%28Vocal_Only_Nasheed%29.flac";
-  const response = await fetch(sourceUrl, { signal: AbortSignal.timeout(60000) });
+  let response;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    response = await fetch(sourceUrl, {
+      headers: { "User-Agent": "Mozilla/5.0 (compatible; CardStudio licensed-audio-bundler/1.0)" },
+      signal: AbortSignal.timeout(60000)
+    });
+    if (response.status !== 429 || attempt === 2) break;
+    const wait = Number(response.headers.get("retry-after") || 4) * 1000;
+    await new Promise(resolve => setTimeout(resolve, Math.min(12000, wait)));
+  }
   if (!response.ok) throw new Error("Wikimedia returned HTTP " + response.status);
   {
     const bytes = Buffer.from(await response.arrayBuffer());
