@@ -5,14 +5,14 @@ const endpoint = "https://kaino.dev/mcp";
 const outDir = path.resolve("www/audio");
 const manifestPath = path.join(outDir, "library.json");
 const wanted = [
-  { query: "cheerful", filterMood: "Cheerful", mood: "شاد و جشن", key: "wedding", icon: "🎉" },
-  { query: "romantic", filterMood: "Nostalgic", mood: "عاشقانه", key: "love", icon: "💗" },
-  { query: "hopeful", filterMood: "Hopeful", mood: "امید و انتظار", key: "mahdavi", icon: "🌙" },
-  { query: "calm", filterMood: "Relaxed", mood: "آرامش", key: "calm", icon: "🌿" },
+  { query: "cheerful", filterMood: "cheerful", mood: "شاد و جشن", key: "wedding", icon: "🎉" },
+  { query: "romantic", filterMood: "nostalgic", mood: "عاشقانه", key: "love", icon: "💗" },
+  { query: "hopeful", filterMood: "hopeful", mood: "امید و انتظار", key: "mahdavi", icon: "🌙" },
+  { query: "calm", filterMood: "relaxed", mood: "آرامش", key: "calm", icon: "🌿" },
   { query: "reflective", filterMood: "Nostalgic", mood: "احساسی و سوگوارانه", key: "condolence", icon: "🕊️" },
-  { query: "heroic", filterMood: "Heroic", mood: "حماسی", key: "martyrdom", icon: "🏴" },
+  { query: "heroic", filterMood: "heroic", mood: "حماسی", key: "martyrdom", icon: "🏴" },
   { query: "birthday", filterMood: "Cheerful", mood: "تولد", key: "birthday", icon: "🎂" },
-  { query: "warm", filterMood: "Warm", mood: "مذهبی و معنوی", key: "religious", icon: "🕌" }
+  { query: "warm", filterMood: "warm", mood: "مذهبی و معنوی", key: "religious", icon: "🕌" }
 ];
 
 function parseRpcResponse(raw, contentType = "") {
@@ -119,7 +119,7 @@ function firstAudioUrl(value) {
     seen.add(v);
     if (Array.isArray(v)) { v.forEach(walk); return; }
     for (const [k, x] of Object.entries(v)) {
-      if (typeof x === "string" && /^https?:\/\//i.test(x) && (/\.mp3(\?|$)/i.test(x) || /\.wav(\?|$)/i.test(x) || /download/i.test(k))) urls.push(x);
+      if (typeof x === "string" && /^https?:\/\//i.test(x) && (/\.mp3(\?|$)/i.test(x) || /\.wav(\?|$)/i.test(x) || /download/i.test(k) || k.toLowerCase() === "url")) urls.push(x);
       else if (x && typeof x === "object") walk(x);
     }
   }
