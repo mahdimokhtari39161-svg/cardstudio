@@ -44,6 +44,16 @@ jobs:
       - name: Download and bundle CC0 music library
         run: node scripts/download-music.mjs
 
+      - name: Optimize bundled music for mobile
+        run: |
+          if command -v ffmpeg >/dev/null 2>&1; then
+            shopt -s nullglob
+            for f in www/audio/*.mp3; do
+              ffmpeg -y -i "$f" -vn -codec:a libmp3lame -b:a 112k -ac 2 "$f.optimized.mp3" >/dev/null 2>&1
+              if [ -s "$f.optimized.mp3" ]; then mv "$f.optimized.mp3" "$f"; fi
+            done
+          fi
+
       - name: Prepare web assets (copy www + bundle fonts)
         run: npm run prepare-web
 
