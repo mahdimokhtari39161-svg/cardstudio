@@ -133,7 +133,8 @@ try {
   const searchTool = client.tools.find(t => /search_library/.test(t.name));
   const downloadTool = client.tools.find(t => /get_library_download/.test(t.name));
   const itemTool = client.tools.find(t => /get_library_item/.test(t.name));
-  console.log("Kaino tools:", client.tools.map(t => t.name).join(", "));\n  if (!searchTool || !downloadTool) throw new Error("Kaino music search/download tools were not advertised");
+  console.log("Kaino tools:", client.tools.map(t => t.name).join(", "));
+  if (!searchTool || !downloadTool) throw new Error("Kaino music search/download tools were not advertised");
   const seen = new Set();
   for (const target of wanted) {
     try {
