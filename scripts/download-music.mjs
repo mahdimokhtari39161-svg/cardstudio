@@ -193,8 +193,9 @@ try {
 }
 try {
   const sourceUrl = "https://upload.wikimedia.org/wikipedia/commons/9/90/Jawad_Syed_-_Alhamdulilah_%28Vocal_Only_Nasheed%29.flac";
-  const response = await fetch(sourceUrl, { headers: { "User-Agent": "CardStudio/1.0 (licensed audio bundling)" }, signal: AbortSignal.timeout(60000) });
-  if (response.ok) {
+  const response = await fetch(sourceUrl, { signal: AbortSignal.timeout(60000) });
+  if (!response.ok) throw new Error("Wikimedia returned HTTP " + response.status);
+  {
     const bytes = Buffer.from(await response.arrayBuffer());
     if (bytes.length > 1000000 && bytes.length < 25000000) {
       const flacName = "religious-vocal-alhamdulilah.flac";
@@ -223,6 +224,7 @@ try {
         sourceUrl: "https://commons.wikimedia.org/wiki/File:Jawad_Syed_-_Alhamdulilah_(Vocal_Only_Nasheed).flac",
         attribution: "SyedsLife — Alhamdulilah (Vocal Only Nasheed)"
       });
+      console.log("Bundled vocal-only nasheed with CC BY 3.0 attribution.");
     }
   }
 } catch (error) {
