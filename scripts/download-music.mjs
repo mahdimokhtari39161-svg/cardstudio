@@ -1,5 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import { spawnSync } from "node:child_process";
 
 const endpoint = "https://kaino.dev/mcp";
 const outDir = path.resolve("www/audio");
@@ -189,6 +190,43 @@ try {
   }
 } catch (error) {
   console.warn("Could not fetch the CC0 music catalog:", error.message);
+}
+try {
+  const sourceUrl = "https://upload.wikimedia.org/wikipedia/commons/9/90/Jawad_Syed_-_Alhamdulilah_%28Vocal_Only_Nasheed%29.flac";
+  const response = await fetch(sourceUrl, { headers: { "User-Agent": "CardStudio/1.0 (licensed audio bundling)" }, signal: AbortSignal.timeout(60000) });
+  if (response.ok) {
+    const bytes = Buffer.from(await response.arrayBuffer());
+    if (bytes.length > 1000000 && bytes.length < 25000000) {
+      const flacName = "religious-vocal-alhamdulilah.flac";
+      const flacPath = path.join(outDir, flacName);
+      await fs.writeFile(flacPath, bytes);
+      let src = "./audio/" + flacName;
+      const mp3Name = "religious-vocal-alhamdulilah.mp3";
+      const mp3Path = path.join(outDir, mp3Name);
+      const converted = spawnSync("ffmpeg", ["-y", "-i", flacPath, "-vn", "-codec:a", "libmp3lame", "-b:a", "112k", mp3Path], { stdio: "ignore" });
+      if (converted.status === 0) {
+        const stat = await fs.stat(mp3Path);
+        if (stat.size > 10000) { await fs.unlink(flacPath); src = "./audio/" + mp3Name; }
+      }
+      manifest.push({
+        id: "religious-vocal-alhamdulilah",
+        title: "Alhamdulillah — Vocal Only Nasheed",
+        artist: "SyedsLife",
+        mood: "religious",
+        moodLabel: "سرود مذهبی آوازی",
+        icon: "🕌",
+        src,
+        duration: "3:10",
+        license: "CC BY 3.0",
+        licenseUrl: "https://creativecommons.org/licenses/by/3.0/",
+        source: "Wikimedia Commons",
+        sourceUrl: "https://commons.wikimedia.org/wiki/File:Jawad_Syed_-_Alhamdulilah_(Vocal_Only_Nasheed).flac",
+        attribution: "SyedsLife — Alhamdulilah (Vocal Only Nasheed)"
+      });
+    }
+  }
+} catch (error) {
+  console.warn("Optional openly-licensed vocal nasheed was skipped:", error.message);
 }
 if (manifest.length < 6) throw new Error("The licensed music catalog returned only " + manifest.length + " tracks; refusing to publish an incomplete music library.");
 await fs.writeFile(manifestPath, JSON.stringify(manifest, null, 2));
