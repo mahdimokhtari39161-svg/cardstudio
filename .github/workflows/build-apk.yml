@@ -41,6 +41,9 @@ jobs:
       - name: Run logic tests
         run: node scripts/test-logic.mjs
 
+      - name: Download and bundle CC0 music library
+        run: node scripts/download-music.mjs
+
       - name: Prepare web assets (copy www + bundle fonts)
         run: npm run prepare-web
 
