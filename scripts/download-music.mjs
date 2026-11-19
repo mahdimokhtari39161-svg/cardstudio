@@ -5,14 +5,14 @@ const endpoint = "https://kaino.dev/mcp";
 const outDir = path.resolve("www/audio");
 const manifestPath = path.join(outDir, "library.json");
 const wanted = [
-  { query: "cheerful happy upbeat", mood: "شاد و جشن", key: "wedding", icon: "🎉" },
-  { query: "romantic love piano", mood: "عاشقانه", key: "love", icon: "💗" },
-  { query: "hopeful uplifting warm", mood: "امید و انتظار", key: "mahdavi", icon: "🌙" },
-  { query: "calm peaceful ambient", mood: "آرامش", key: "calm", icon: "🌿" },
-  { query: "cinematic emotional reflective", mood: "احساسی و سوگوارانه", key: "condolence", icon: "🕊️" },
-  { query: "epic heroic cinematic", mood: "حماسی", key: "martyrdom", icon: "🏴" },
-  { query: "birthday celebration joyful", mood: "تولد", key: "birthday", icon: "🎂" },
-  { query: "acoustic gentle spiritual", mood: "مذهبی و معنوی", key: "religious", icon: "🕌" }
+  { query: "cheerful", filterMood: "Cheerful", mood: "شاد و جشن", key: "wedding", icon: "🎉" },
+  { query: "romantic", filterMood: "Nostalgic", mood: "عاشقانه", key: "love", icon: "💗" },
+  { query: "hopeful", filterMood: "Hopeful", mood: "امید و انتظار", key: "mahdavi", icon: "🌙" },
+  { query: "calm", filterMood: "Relaxed", mood: "آرامش", key: "calm", icon: "🌿" },
+  { query: "reflective", filterMood: "Nostalgic", mood: "احساسی و سوگوارانه", key: "condolence", icon: "🕊️" },
+  { query: "heroic", filterMood: "Heroic", mood: "حماسی", key: "martyrdom", icon: "🏴" },
+  { query: "birthday", filterMood: "Cheerful", mood: "تولد", key: "birthday", icon: "🎂" },
+  { query: "warm", filterMood: "Warm", mood: "مذهبی و معنوی", key: "religious", icon: "🕌" }
 ];
 
 function parseRpcResponse(raw, contentType = "") {
@@ -142,7 +142,7 @@ try {
   const seen = new Set();
   for (const target of wanted) {
     try {
-      const search = await client.call(searchTool.name, { collection: "music", q: target.query, page: 1 });
+      const search = await client.call(searchTool.name, { collection: "music", mood: target.filterMood, page: 1 });
       console.log("Search response for", target.key, JSON.stringify(search).slice(0, 1600));
       const items = findItems(search);
       console.log("Candidate items:", items.length);
