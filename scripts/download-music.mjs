@@ -192,52 +192,73 @@ try {
   console.warn("Could not fetch the CC0 music catalog:", error.message);
 }
 try {
-  const sourceUrl = "https://upload.wikimedia.org/wikipedia/commons/9/90/Jawad_Syed_-_Alhamdulilah_%28Vocal_Only_Nasheed%29.flac";
-  let response;
-  for (let attempt = 0; attempt < 3; attempt++) {
-    response = await fetch(sourceUrl, {
-      headers: { "User-Agent": "Mozilla/5.0 (compatible; CardStudio licensed-audio-bundler/1.0)" },
-      signal: AbortSignal.timeout(60000)
-    });
-    if (response.status !== 429 || attempt === 2) break;
-    const wait = Number(response.headers.get("retry-after") || 4) * 1000;
-    await new Promise(resolve => setTimeout(resolve, Math.min(12000, wait)));
+  const terms = ["Hussain", "Karbala", "Muharram", ""];
+  const candidates = [];
+  const seenVocal = new Set();
+  for (const term of terms) {
+    const url = new URL("https://nasheed.lomeyo.com/api/public/v1/tracks");
+    url.searchParams.set("instrumentation", "voice_only");
+    url.searchParams.set("license", "CC0,CC-BY,public-domain");
+    url.searchParams.set("limit", "20");
+    if (term) url.searchParams.set("q", term);
+    const response = await fetch(url, { signal: AbortSignal.timeout(30000) });
+    if (!response.ok) continue;
+    const data = await response.json();
+    for (const track of data.tracks || []) {
+      if (!track.slug || seenVocal.has(track.slug)) continue;
+      if (!["CC0", "CC-BY", "public-domain"].includes(track.license)) continue;
+      if (track.instrumentation !== "voice_only") continue;
+      seenVocal.add(track.slug);
+      candidates.push(track);
+    }
+    if (candidates.filter(t => /hussain|karbala|muharram/i.test((t.title||"")+" "+(t.title_original||"")+" "+(t.tags||[]).join(" "))).length >= 3) break;
   }
-  if (!response.ok) throw new Error("Wikimedia returned HTTP " + response.status);
-  {
-    const bytes = Buffer.from(await response.arrayBuffer());
-    if (bytes.length > 1000000 && bytes.length < 25000000) {
-      const flacName = "religious-vocal-alhamdulilah.flac";
-      const flacPath = path.join(outDir, flacName);
-      await fs.writeFile(flacPath, bytes);
-      let src = "./audio/" + flacName;
-      const mp3Name = "religious-vocal-alhamdulilah.mp3";
+  const themed = candidates.filter(t => /hussain|karbala|muharram/i.test((t.title||"")+" "+(t.title_original||"")+" "+(t.tags||[]).join(" ")));
+  const chosen = (themed.length ? themed : candidates).slice(0, 3);
+  for (const track of chosen) {
+    try {
+      const response = await fetch(track.audio_url, { signal: AbortSignal.timeout(60000) });
+      if (!response.ok) continue;
+      const bytes = Buffer.from(await response.arrayBuffer());
+      if (bytes.length < 12000 || bytes.length > 30000000) continue;
+      const safe = String(track.slug).replace(/[^a-z0-9-]/gi, "-").slice(0, 50);
+      const originalExt = String(track.file_format || new URL(track.audio_url).pathname.split(".").pop() || "mp3").replace(/[^a-z0-9]/gi, "").toLowerCase();
+      const originalName = "nasheed-" + safe + "." + originalExt;
+      const originalPath = path.join(outDir, originalName);
+      await fs.writeFile(originalPath, bytes);
+      let src = "./audio/" + originalName;
+      const mp3Name = "nasheed-" + safe + ".mp3";
       const mp3Path = path.join(outDir, mp3Name);
-      const converted = spawnSync("ffmpeg", ["-y", "-i", flacPath, "-vn", "-codec:a", "libmp3lame", "-b:a", "112k", mp3Path], { stdio: "ignore" });
-      if (converted.status === 0) {
-        const stat = await fs.stat(mp3Path);
-        if (stat.size > 10000) { await fs.unlink(flacPath); src = "./audio/" + mp3Name; }
+      if (originalExt !== "mp3") {
+        const converted = spawnSync("ffmpeg", ["-y", "-i", originalPath, "-vn", "-codec:a", "libmp3lame", "-b:a", "112k", mp3Path], { stdio: "ignore" });
+        if (converted.status === 0 && (await fs.stat(mp3Path)).size > 10000) {
+          await fs.unlink(originalPath);
+          src = "./audio/" + mp3Name;
+        }
       }
+      const themedTrack = /hussain|karbala|muharram/i.test((track.title||"")+" "+(track.title_original||"")+" "+(track.tags||[]).join(" "));
       manifest.push({
-        id: "religious-vocal-alhamdulilah",
-        title: "Alhamdulillah — Vocal Only Nasheed",
-        artist: "SyedsLife",
-        mood: "religious",
-        moodLabel: "سرود مذهبی آوازی",
-        icon: "🕌",
+        id: "nasheed-" + track.slug,
+        title: track.title_original || track.title,
+        artist: track.artist || "Nasheed Directory",
+        mood: themedTrack ? "madahi" : "religious",
+        moodLabel: themedTrack ? "مداحی و یاد امام حسین" : "سرود مذهبی آوازی",
+        icon: themedTrack ? "🏴" : "🕌",
         src,
-        duration: "3:10",
-        license: "CC BY 3.0",
-        licenseUrl: "https://creativecommons.org/licenses/by/3.0/",
-        source: "Wikimedia Commons",
-        sourceUrl: "https://commons.wikimedia.org/wiki/File:Jawad_Syed_-_Alhamdulilah_(Vocal_Only_Nasheed).flac",
-        attribution: "SyedsLife — Alhamdulilah (Vocal Only Nasheed)"
+        duration: track.duration_seconds || "",
+        license: track.license,
+        licenseUrl: track.license_url || "https://nasheed.lomeyo.com/",
+        source: "Nasheed Directory",
+        sourceUrl: track.source_url || "https://nasheed.lomeyo.com/",
+        attribution: track.attribution_text || ""
       });
-      console.log("Bundled vocal-only nasheed with CC BY 3.0 attribution.");
+    } catch (error) {
+      console.warn("A licensed vocal track was skipped:", error.message);
     }
   }
+  console.log("Bundled " + chosen.length + " verified voice-only nasheed tracks from Nasheed Directory.");
 } catch (error) {
-  console.warn("Optional openly-licensed vocal nasheed was skipped:", error.message);
+  console.warn("Optional licensed nasheed catalog was unavailable:", error.message);
 }
 if (manifest.length < 6) throw new Error("The licensed music catalog returned only " + manifest.length + " tracks; refusing to publish an incomplete music library.");
 await fs.writeFile(manifestPath, JSON.stringify(manifest, null, 2));
