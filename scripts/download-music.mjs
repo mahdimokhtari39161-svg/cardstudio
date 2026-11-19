@@ -86,12 +86,15 @@ function schemaArgs(tool, values) {
   const args = {};
   for (const [key, def] of Object.entries(props)) {
     const k = key.toLowerCase();
-    if (/query|search|keyword|term/.test(k)) args[key] = values.query || "music";
+    if (/componentcollection/.test(k)) args[key] = "kaino";
+    else if (/query|search|keyword|term/.test(k)) args[key] = values.query || "music";
     else if (/mood/.test(k)) args[key] = values.mood || "cheerful";
     else if (/format|extension|file_type/.test(k)) args[key] = "mp3";
-    else if (/collection|category|library|kind|type/.test(k)) args[key] = "music";
+    else if (/page$/.test(k)) args[key] = 1;
+    else if (/offset/.test(k)) args[key] = 0;
     else if (/limit|count|page_size|per_page/.test(k)) args[key] = 20;
-    else if (/offset|page/.test(k)) args[key] = 0;
+    else if (def.enum?.length) args[key] = def.enum.includes("music") ? "music" : def.enum.includes("kaino") ? "kaino" : def.enum[0];
+    else if (/collection|category|library|kind|type/.test(k)) args[key] = "music";
     else if (/id|slug|item|asset|track/.test(k)) {
       const source = values.item || {};
       const match = Object.keys(source).find(p => p.toLowerCase() === k) ||
@@ -134,6 +137,7 @@ try {
   const downloadTool = client.tools.find(t => /get_library_download/.test(t.name));
   const itemTool = client.tools.find(t => /get_library_item/.test(t.name));
   console.log("Kaino tools:", client.tools.map(t => t.name).join(", "));
+  console.log("Kaino tool schemas:", JSON.stringify({ search: searchTool?.inputSchema, item: itemTool?.inputSchema, download: downloadTool?.inputSchema }).slice(0, 5000));
   if (!searchTool || !downloadTool) throw new Error("Kaino music search/download tools were not advertised");
   const seen = new Set();
   for (const target of wanted) {
