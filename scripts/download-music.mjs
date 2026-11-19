@@ -133,12 +133,12 @@ try {
   const searchTool = client.tools.find(t => /search_library/.test(t.name));
   const downloadTool = client.tools.find(t => /get_library_download/.test(t.name));
   const itemTool = client.tools.find(t => /get_library_item/.test(t.name));
-  if (!searchTool || !downloadTool) throw new Error("Kaino music search/download tools were not advertised");
+  console.log("Kaino tools:", client.tools.map(t => t.name).join(", "));\n  if (!searchTool || !downloadTool) throw new Error("Kaino music search/download tools were not advertised");
   const seen = new Set();
   for (const target of wanted) {
     try {
       const search = await client.call(searchTool.name, schemaArgs(searchTool, { query: target.query, mood: target.key }));
-      const items = findItems(search);
+      console.log("Search response for", target.key, JSON.stringify(search).slice(0, 1600));\n      const items = findItems(search);\n      console.log("Candidate items:", items.length);
       for (const item of items) {
         const title = item.title || item.name || item.slug || "Music track";
         const ident = item.slug || item.id || item.item_id || item.asset_id || item.track_id || title;
@@ -152,7 +152,7 @@ try {
           } catch {}
         }
         const downloaded = await client.call(downloadTool.name, schemaArgs(downloadTool, { item: details, identifier: ident, query: target.query }));
-        const url = firstAudioUrl(downloaded) || firstAudioUrl(details) || firstAudioUrl(item);
+        console.log("Download response:", JSON.stringify(downloaded).slice(0, 1200));\n        const url = firstAudioUrl(downloaded) || firstAudioUrl(details) || firstAudioUrl(item);
         if (!url) continue;
         const res = await fetch(url, { signal: AbortSignal.timeout(60000) });
         if (!res.ok) continue;
