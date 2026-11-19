@@ -140,7 +140,8 @@ try {
     try {
       const search = await client.call(searchTool.name, schemaArgs(searchTool, { query: target.query, mood: target.key }));
       console.log("Search response for", target.key, JSON.stringify(search).slice(0, 1600));
-      const items = findItems(search);\n      console.log("Candidate items:", items.length);
+      const items = findItems(search);
+      console.log("Candidate items:", items.length);
       for (const item of items) {
         const title = item.title || item.name || item.slug || "Music track";
         const ident = item.slug || item.id || item.item_id || item.asset_id || item.track_id || title;
