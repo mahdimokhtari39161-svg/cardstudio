@@ -136,16 +136,12 @@ try {
   const searchTool = client.tools.find(t => /search_library/.test(t.name));
   const downloadTool = client.tools.find(t => /get_library_download/.test(t.name));
   const itemTool = client.tools.find(t => /get_library_item/.test(t.name));
-  console.log("Kaino tools:", client.tools.map(t => t.name).join(", "));
-  console.log("Kaino tool schemas:", JSON.stringify({ search: searchTool?.inputSchema, item: itemTool?.inputSchema, download: downloadTool?.inputSchema }).slice(0, 5000));
   if (!searchTool || !downloadTool) throw new Error("Kaino music search/download tools were not advertised");
   const seen = new Set();
   for (const target of wanted) {
     try {
       const search = await client.call(searchTool.name, { collection: "music", mood: target.filterMood, page: 1 });
-      console.log("Search response for", target.key, JSON.stringify(search).slice(0, 1600));
       const items = findItems(search);
-      console.log("Candidate items:", items.length);
       for (const item of items) {
         const title = item.title || item.name || item.slug || "Music track";
         const ident = item.slug || item.id || item.item_id || item.asset_id || item.track_id || title;
@@ -159,7 +155,6 @@ try {
           } catch {}
         }
         const downloaded = await client.call(downloadTool.name, schemaArgs(downloadTool, { item: details, identifier: ident, query: target.query }));
-        console.log("Download response:", JSON.stringify(downloaded).slice(0, 1200));
         const url = firstAudioUrl(downloaded) || firstAudioUrl(details) || firstAudioUrl(item);
         if (!url) continue;
         const res = await fetch(url, { signal: AbortSignal.timeout(60000) });
@@ -195,5 +190,6 @@ try {
 } catch (error) {
   console.warn("Could not fetch the CC0 music catalog:", error.message);
 }
+if (manifest.length < 6) throw new Error("The licensed music catalog returned only " + manifest.length + " tracks; refusing to publish an incomplete music library.");
 await fs.writeFile(manifestPath, JSON.stringify(manifest, null, 2));
 console.log("Prepared " + manifest.length + " licensed music tracks in " + outDir);
