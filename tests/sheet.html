@@ -1,0 +1,20 @@
+<!doctype html><html><head><meta charset="utf-8"><style>body{margin:0;background:#888;font-family:sans-serif}#g{display:flex;flex-wrap:wrap;gap:8px;padding:8px}canvas{background:#fff}</style></head><body><div id="g"></div>
+<script type="module">
+import { cardFromTemplate, templatesFor, templateCount } from '../www/js/templates/registry.js';
+import { renderPageToCanvas, Assets } from '../www/js/gfx/render.js';
+import { STYLE_IDS } from '../www/js/templates/styles.js';
+const q = new URLSearchParams(location.search);
+const occ = q.get('occ') || 'wedding', lang = q.get('lang') || 'fa', v = q.get('v') || '0', only = q.get('styles');
+const ids = (only ? only.split(',') : STYLE_IDS);
+window.__count = templateCount();
+const g = document.getElementById('g');
+for (const s of ids) {
+  const id = `${occ}.${s}.${v}`;
+  if (!templatesFor(occ).find((t) => t.id === id)) continue;
+  const card = cardFromTemplate(id, { lang });
+  const c = renderPageToCanvas(card, 0, +(q.get('w') || 360));
+  c.title = id; g.appendChild(c);
+}
+await document.fonts.ready;
+window.__done = true;
+</script></body></html>

@@ -8,7 +8,8 @@
     "prepare-web": "node scripts/prepare-web.mjs",
     "sync": "node scripts/prepare-web.mjs && npx cap sync android",
     "serve": "node scripts/serve.mjs",
-    "test": "node scripts/test-logic.mjs"
+    "test": "node scripts/test-logic.mjs",
+    "install-fonts": "node scripts/install-fonts.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^7.0.0",
@@ -16,24 +17,28 @@
     "@capacitor/core": "^7.0.0",
     "@capacitor/filesystem": "^7.0.0",
     "@capacitor/share": "^7.0.0",
-    "@capacitor-community/media": "^7.0.0"
+    "@capacitor-community/media": "^8.0.1"
   },
   "devDependencies": {
-    "@capacitor/cli": "^7.0.0",
-    "@fontsource/amiri": "^5.0.0",
-    "@fontsource/aref-ruqaa": "^5.0.0",
-    "@fontsource/cinzel": "^5.0.0",
-    "@fontsource/comfortaa": "^5.0.0",
-    "@fontsource/cormorant-garamond": "^5.0.0",
-    "@fontsource/dancing-script": "^5.0.0",
-    "@fontsource/great-vibes": "^5.0.0",
-    "@fontsource/lalezar": "^5.0.0",
-    "@fontsource/montserrat": "^5.0.0",
-    "@fontsource/noto-naskh-arabic": "^5.0.0",
-    "@fontsource/noto-nastaliq-urdu": "^5.0.0",
-    "@fontsource/pacifico": "^5.0.0",
-    "@fontsource/playfair-display": "^5.0.0",
-    "@fontsource/reem-kufi": "^5.0.0",
-    "@fontsource/vazirmatn": "^5.0.0"
+    "@capacitor/cli": "^7.0.0"
+  },
+  "config": {
+    "fonts": [
+      "@fontsource/amiri",
+      "@fontsource/aref-ruqaa",
+      "@fontsource/cinzel",
+      "@fontsource/comfortaa",
+      "@fontsource/cormorant-garamond",
+      "@fontsource/dancing-script",
+      "@fontsource/great-vibes",
+      "@fontsource/lalezar",
+      "@fontsource/montserrat",
+      "@fontsource/noto-naskh-arabic",
+      "@fontsource/noto-nastaliq-urdu",
+      "@fontsource/pacifico",
+      "@fontsource/playfair-display",
+      "@fontsource/reem-kufi",
+      "@fontsource/vazirmatn"
+    ]
   }
 }

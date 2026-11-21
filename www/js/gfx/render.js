@@ -221,8 +221,8 @@ export function drawFrame(ctx, el) {
     case 'scallop': {
       ctx.lineWidth = Math.max(1.5, sw / 2); const r = Math.max(10, sw * 3), nx = Math.max(3, Math.round(w / (r * 2))), ny = Math.max(3, Math.round(h / (r * 2)));
       const rw = w / nx / 2, rh = h / ny / 2; ctx.beginPath();
-      for (let i = 0; i < nx; i++) { ctx.arc(x + rw + i * rw * 2, y + r * 0.2, rw, Math.PI, 0); ctx.arc(x + rw + i * rw * 2, y + h - r * 0.2, rw, 0, Math.PI); }
-      for (let i = 0; i < ny; i++) { ctx.moveTo(x + r * 0.2, y + i * rh * 2 + rh * 2); ctx.arc(x + r * 0.2, y + rh + i * rh * 2, rh, Math.PI / 2, -Math.PI / 2); ctx.moveTo(x + w - r * 0.2, y + i * rh * 2); ctx.arc(x + w - r * 0.2, y + rh + i * rh * 2, rh, -Math.PI / 2, Math.PI / 2); }
+      for (let i = 0; i < nx; i++) { const cx = x + rw + i * rw * 2; ctx.moveTo(cx - rw, y + r * 0.2); ctx.arc(cx, y + r * 0.2, rw, Math.PI, 0); ctx.moveTo(cx - rw, y + h - r * 0.2); ctx.arc(cx, y + h - r * 0.2, rw, Math.PI, 0, true); }
+      for (let i = 0; i < ny; i++) { const cy = y + rh + i * rh * 2; ctx.moveTo(x + r * 0.2, cy - rh); ctx.arc(x + r * 0.2, cy, rh, -Math.PI / 2, Math.PI / 2); ctx.moveTo(x + w - r * 0.2, cy - rh); ctx.arc(x + w - r * 0.2, cy, rh, -Math.PI / 2, Math.PI / 2, true); }
       ctx.stroke(); box(sw * 3, Math.max(1, sw / 3), c2); break;
     }
     case 'ornate': {
