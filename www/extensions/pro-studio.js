@@ -105,7 +105,7 @@ register('prostudio',async()=>{
         const src=assetUrl(tr.src);
         list.append(h('div',{class:'pro-track'},h('div',{class:'grow'},h('b',null,(tr.icon||'♫')+' '+tr.title),h('small',null,(tr.moodLabel||tr.mood||'')+' · '+(tr.license||''))),
           h('button',{class:'btn small',onclick:()=>play(src)},ic('play',13),L('پخش','Play')),
-          h('button',{class:'btn small primary',onclick:()=>{chosen={...tr,src};toast(L('آهنگ انتخاب شد. حالا آن را برای کارت ذخیره کنید.','Track selected. Save it to your card.'));}},L('انتخاب','Select'))));
+          h('button',{class:'btn small primary',onclick:()=>{chosen={...tr};toast(L('آهنگ انتخاب شد. حالا آن را برای کارت ذخیره کنید.','Track selected. Save it to your card.'));}},L('انتخاب','Select'))));
       }
     };
     const save=async()=>{
