@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#171329"><title>دعوت‌نامه | CardStudio</title>
+<style>
+:root{color-scheme:dark;--bg:#171329;--gold:#e8c875;--ink:#fff8e9;--muted:#c5bcae}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 50% 10%,#40304e,#171329 65%);color:var(--ink);font-family:Tahoma,Arial,sans-serif;display:grid;place-items:center;padding:22px}
+main{width:min(100%,560px);text-align:center}.brand{font-size:12px;letter-spacing:2px;color:var(--gold);margin-bottom:18px}.eyebrow{color:var(--muted);font-size:14px}.title{font-size:clamp(25px,6vw,38px);margin:12px 0 8px}.subtitle{color:var(--muted);line-height:1.9}
+.choices{display:flex;gap:9px;justify-content:center;flex-wrap:wrap;margin:22px 0}.choice{border:1px solid #ffffff35;background:#ffffff0b;color:var(--ink);border-radius:999px;padding:9px 14px;cursor:pointer}.choice.active{border-color:var(--gold);background:#e8c87522;color:var(--gold)}
+.stage{height:300px;display:grid;place-items:center;perspective:1000px;margin:10px auto 20px}.envelope{width:min(88vw,390px);height:240px;position:relative;cursor:pointer;filter:drop-shadow(0 22px 28px #0008);transform-style:preserve-3d}.env-back{position:absolute;inset:0;border-radius:12px;background:var(--env);border:1px solid #ffffff45;overflow:hidden}.env-back:before,.env-back:after{content:"";position:absolute;inset:0;background:linear-gradient(140deg,transparent 49.5%,#ffffff28 50%,transparent 50.5%),linear-gradient(40deg,transparent 49.5%,#0002 50%,transparent 50.5%)}
+.flap{position:absolute;inset:0 0 auto;height:58%;background:var(--flap);clip-path:polygon(0 0,100% 0,50% 100%);transform-origin:top;z-index:5;transition:transform 1s cubic-bezier(.2,.7,.2,1);border-top:1px solid #ffffff70}
+.seal{position:absolute;z-index:7;left:50%;top:48%;transform:translate(-50%,-50%);width:54px;height:54px;border-radius:50%;display:grid;place-items:center;background:var(--seal);color:#fff;font-size:24px;box-shadow:0 3px 10px #0005;transition:opacity .3s}
+.letter{position:absolute;z-index:3;left:7%;right:7%;top:8%;height:82%;border-radius:8px;background:#fffaf0;color:#463b32;padding:22px 16px;display:flex;flex-direction:column;justify-content:center;align-items:center;box-shadow:0 2px 12px #0003;transition:transform 1s .15s;overflow:hidden}
+.letter .mini{font-size:12px;color:#92794d}.letter strong{font-size:24px;margin:12px 0}.letter p{font-size:13px;line-height:1.8;margin:4px}
+.envelope.open .flap{transform:rotateX(180deg);z-index:1}.envelope.open .seal{opacity:0}.envelope.open .letter{transform:translateY(-88px)}
+.hint{font-size:13px;color:var(--gold);margin-top:4px}.details{display:none;background:#fffaf0;color:#463b32;border-radius:18px;padding:22px;text-align:start;line-height:1.9;box-shadow:0 14px 40px #0004}.details.show{display:block;animation:rise .7s both}@keyframes rise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+.details h2{text-align:center;color:#8a6530}.details .center{text-align:center}.actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:18px}.btn{border:0;border-radius:12px;padding:12px 16px;background:#9b7541;color:white;font-weight:bold;cursor:pointer}.btn.secondary{background:#e9dfce;color:#493b2b}.music{margin-top:14px}.music button{background:transparent;border:1px solid #ffffff50;color:var(--ink);border-radius:999px;padding:9px 14px}
+.error{background:#492b39;padding:18px;border-radius:14px;line-height:1.8}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style></head>
+<body><main>
+<div class="brand">CARDSTUDIO</div><div class="eyebrow" id="eyebrow">یک دعوت ویژه برای شما</div>
+<h1 class="title" id="heading">یک پاکت برای شما رسیده است</h1>
+<p class="subtitle" id="intro">پاکت را انتخاب کنید و برای دیدن دعوت‌نامه روی آن بزنید.</p>
+<div id="app">
+<div class="choices" id="choices">
+<button class="choice active" data-style="royal">طلایی</button><button class="choice" data-style="rose">رزگلد</button><button class="choice" data-style="midnight">شبانه</button><button class="choice" data-style="garden">باغی</button>
+</div>
+<div class="stage"><div class="envelope" id="envelope" role="button" tabindex="0" aria-label="باز کردن پاکت">
+<div class="env-back"></div><div class="letter"><span class="mini">YOU ARE INVITED</span><strong id="letterTitle">دعوت‌نامه</strong><p id="letterName">با عشق و شادی</p><p id="letterDate"></p></div><div class="flap"></div><div class="seal">✦</div>
+</div></div>
+<div class="hint" id="hint">برای باز کردن، روی پاکت بزنید</div>
+<div class="music"><button id="musicBtn" type="button">♫ موسیقی: خاموش</button></div>
+<section class="details" id="details">
+<div class="center">✧ ✧ ✧</div><h2 id="eventTitle">شما دعوت هستید</h2><p id="greeting"></p><p id="dateLine"></p><p id="timeLine"></p><p id="venueLine"></p><p id="addressLine"></p><p id="hostLine"></p><p id="dressLine"></p><p id="notesLine"></p>
+<div class="actions"><button class="btn" id="yesBtn">با افتخار می‌آیم</button><button class="btn secondary" id="noBtn">متأسفانه نمی‌رسم</button><button class="btn secondary" id="calBtn">افزودن به تقویم</button><button class="btn secondary" id="mapBtn" hidden>نمایش نقشه</button></div>
+<p class="center" id="replyMsg"></p>
+</section>
+</div>
+<div id="error" class="error" hidden>لینک دعوت‌نامه معتبر نیست یا اطلاعات آن کامل نیست. لطفاً از فرستنده بخواهید لینک را دوباره ارسال کند.</div>
+<p class="subtitle" style="font-size:11px;margin-top:24px">ساخته‌شده با CardStudio</p>
+</main>
+<script>
+(()=> {
+const $=id=>document.getElementById(id);
+const styles={
+royal:['#b78a45','#e4c47d','#8e642e'],rose:['#b97878','#e9b8ad','#9a5b65'],midnight:['#263451','#506b98','#17233d'],garden:['#55765c','#a7c28e','#3d5d45']
+};
+const raw=location.hash.slice(1);let data=null;
+try{let b=raw.replace(/-/g,'+').replace(/_/g,'/');b+='='.repeat((4-b.length%4)%4);data=JSON.parse(decodeURIComponent(escape(atob(b))))}catch{}
+if(!data||data.v!==1){$('app').hidden=true;$('error').hidden=false;return}
+const lang=data.l||'fa', en=lang==='en', ar=lang==='ar';
+document.documentElement.lang=lang;document.documentElement.dir=en?'ltr':'rtl';
+const words=en?{eyebrow:'A special invitation for you',heading:'An envelope has arrived',intro:'Choose an envelope and tap it to reveal your invitation.',hint:'Tap the envelope to open',music:'♫ Music: ',off:'Off',on:'On',yes:'I will attend',no:'Sorry, I cannot attend',cal:'Add to calendar',thanks:'Your reply code',invalid:'Invitation'}:ar?{eyebrow:'دعوة خاصة لك',heading:'وصلتك رسالة دعوة',intro:'اختر ظرفاً واضغط عليه لفتح الدعوة.',hint:'اضغط على الظرف لفتحه',music:'♫ الموسيقى: ',off:'متوقفة',on:'تعمل',yes:'سأحضر بكل سرور',no:'أعتذر، لن أتمكن من الحضور',cal:'أضف إلى التقويم',thanks:'رمز ردك',invalid:'دعوة'}:{eyebrow:'یک دعوت ویژه برای شما',heading:'یک پاکت برای شما رسیده است',intro:'طرح پاکت را انتخاب کنید و برای دیدن دعوت‌نامه روی آن بزنید.',hint:'برای باز کردن، روی پاکت بزنید',music:'♫ موسیقی: ',off:'خاموش',on:'روشن',yes:'با افتخار می‌آیم',no:'متأسفانه نمی‌رسم',cal:'افزودن به تقویم',thanks:'کد پاسخ شما',invalid:'دعوت‌نامه'};
+$('eyebrow').textContent=words.eyebrow;$('heading').textContent=words.heading;$('intro').textContent=words.intro;$('hint').textContent=words.hint;$('yesBtn').textContent=words.yes;$('noBtn').textContent=words.no;$('calBtn').textContent=words.cal;
+const title=data.t||words.invalid, guest=data.gn||'', date=data.d||'';
+$('letterTitle').textContent=title;$('letterName').textContent=guest?((en?'Dear ':'مهمان گرامی، ')+guest): (data.n||'با عشق و شادی');$('letterDate').textContent=date;
+$('eventTitle').textContent=title;$('greeting').textContent=guest?(en?'Dear '+guest+', we would be delighted by your presence.':'مهمان عزیز '+guest+'، حضور شما مایهٔ شادی ماست.'): (data.n||'با شادی و مهر، از شما دعوت می‌کنیم.');
+const dateText=date?new Date(date+'T12:00:00').toLocaleDateString(en?'en-US':ar?'ar':'fa-IR',{year:'numeric',month:'long',day:'numeric'}):'';
+$('dateLine').textContent=dateText?(en?'Date: ':ar?'التاريخ: ':'تاریخ: ')+dateText:'';
+$('timeLine').textContent=data.s?(en?'Time: ':ar?'الوقت: ':'ساعت: ')+data.s+(data.f?' – '+data.f:''):'';
+$('venueLine').textContent=data.ve?(en?'Venue: ':ar?'المكان: ':'مکان: ')+data.ve:'';
+$('addressLine').textContent=data.a?(en?'Address: ':ar?'العنوان: ':'نشانی: ')+data.a:'';
+$('hostLine').textContent=data.h?(en?'Host: ':ar?'المضيف: ':'میزبان: ')+data.h:'';
+$('dressLine').textContent=data.dr?(en?'Dress code: ':ar?'الزي: ':'نوع پوشش: ')+data.dr:'';
+$('notesLine').textContent=data.no||'';
+if(data.m){$('mapBtn').hidden=false;$('mapBtn').onclick=()=>window.open(data.m,'_blank','noopener')}
+const env=$('envelope');let opened=false,ctx=null,oscillators=[];
+function setStyle(k){const c=styles[k]||styles.royal;env.style.setProperty('--env',c[0]);env.style.setProperty('--flap',c[1]);env.style.setProperty('--seal',c[2]);document.querySelectorAll('.choice').forEach(b=>b.classList.toggle('active',b.dataset.style===k))}
+document.querySelectorAll('.choice').forEach(b=>b.addEventListener('click',()=>setStyle(b.dataset.style)));setStyle('royal');
+function tone(freq,when,duration,volume=.035){if(!ctx)return;const o=ctx.createOscillator(),g=ctx.createGain();o.type='sine';o.frequency.value=freq;g.gain.setValueAtTime(.0001,when);g.gain.exponentialRampToValueAtTime(volume,when+.04);g.gain.exponentialRampToValueAtTime(.0001,when+duration);o.connect(g);g.connect(ctx.destination);o.start(when);o.stop(when+duration+.03)}
+let musicTimer=null,musicOn=false,step=0;const melody=[523.25,659.25,783.99,659.25,587.33,698.46,880,698.46,523.25,659.25,783.99,1046.5,880,783.99,659.25,587.33];
+function startMusic(){const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;ctx=ctx||new AC();ctx.resume();musicOn=true;$('musicBtn').textContent=words.music+words.on;const loop=()=>{if(!musicOn)return;const now=ctx.currentTime;tone(melody[step%melody.length],now,.62,.022);if(step%4===0)tone(melody[(step+2)%melody.length]/2,now,.9,.012);step++;musicTimer=setTimeout(loop,650)};loop()}
+function stopMusic(){musicOn=false;clearTimeout(musicTimer);$('musicBtn').textContent=words.music+words.off}
+$('musicBtn').textContent=words.music+words.off;$('musicBtn').onclick=()=>musicOn?stopMusic():startMusic();
+function open(){if(opened)return;opened=true;env.classList.add('open');$('details').classList.add('show');$('hint').textContent='✦';if(ctx){tone(392,ctx.currentTime,.18,.05);tone(587,ctx.currentTime+.12,.35,.035)}startMusic()}
+env.addEventListener('click',open);env.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();open()}});
+function reply(yes){if(!opened)open();const code='CS1-'+String(data.e||'event').replace(/[^A-Za-z0-9]/g,'')+'-'+String(data.g||'guest').replace(/[^A-Za-z0-9]/g,'')+'-'+(yes?'y':'n')+'-0';$('replyMsg').textContent=words.thanks+': '+code; if(navigator.clipboard?.writeText)navigator.clipboard.writeText(code).catch(()=>{}); }
+$('yesBtn').onclick=()=>reply(true);$('noBtn').onclick=()=>reply(false);
+$('calBtn').onclick=()=>{if(!data.d)return;const dt=data.d.replace(/-/g,'');const time=(data.s||'09:00').replace(':','')+'00';const end=(data.f||'11:00').replace(':','')+'00';const ics=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//CardStudio//Invitation//EN','BEGIN:VEVENT','UID:'+Date.now()+'@cardstudio','DTSTART:'+dt+'T'+time,'DTEND:'+dt+'T'+end,'SUMMARY:'+title,'LOCATION:'+([data.ve,data.a].filter(Boolean).join(', ')),'END:VEVENT','END:VCALENDAR'].join('\r\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([ics],{type:'text/calendar'}));a.download='invitation.ics';a.click();URL.revokeObjectURL(a.href)};
+})();
+</script></body></html>
