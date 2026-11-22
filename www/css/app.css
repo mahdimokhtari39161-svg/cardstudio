@@ -95,7 +95,7 @@ textarea.input{resize:vertical;min-height:70px}
 .ed-tools button{flex:none;min-width:62px;border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 8px;border-radius:10px;font-size:11px;color:var(--muted)}
 .ed-tools button.on{background:var(--card2);color:var(--accent2)}
 .ed-tools button:active{background:var(--card2)}
-.ed-ctx{background:var(--bg2);border-top:1px solid var(--line);max-height:42vh;overflow:auto;padding:8px 12px 10px}
+.ed-ctx{background:var(--bg2);border-top:1px solid var(--line);max-height:42vh;overflow:auto;padding:8px 12px 10px;max-height:34vh;overflow-y:auto}
 .ed-ctx .row{margin-bottom:8px}
 .ed-ctx label.mini{display:flex;flex-direction:column;gap:3px;font-size:11px;color:var(--muted);flex:1;min-width:84px}
 .ed-ctx input[type=range]{width:100%;accent-color:var(--accent)}
@@ -130,3 +130,11 @@ table.t th,table.t td{padding:7px 6px;border-bottom:1px solid var(--line);text-a
 .help h3{margin:18px 0 6px;color:var(--accent2)}.help p,.help li{line-height:1.9;color:var(--text)}
 .offline-badge{font-size:11px;background:rgba(6,214,160,.18);color:var(--ok);padding:2px 8px;border-radius:99px}
 @media (min-width:820px){#app{max-width:980px;margin:0 auto;border-inline:1px solid var(--line)}}
+.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px 4px;text-align:center}
+.stat b{display:block;font-size:20px;color:var(--accent2)}.stat small{font-size:11px;color:var(--muted)}
+.guest-row{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px 12px;margin-bottom:8px}
+.card-sec{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:14px}
+.layer{display:flex;align-items:center;gap:4px;padding:4px 6px;border-radius:10px;border:1px solid var(--line);margin-bottom:6px;background:var(--card)}
+.layer.sel{border-color:var(--accent)}.layer.hid{opacity:.5}.layer .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px}
+.grow{flex:1;min-width:0}

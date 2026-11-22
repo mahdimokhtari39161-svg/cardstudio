@@ -86,8 +86,8 @@ register('animate', async ({ id }) => {
       const sc = buildScene(card, 0); const onProgress = (p) => (bar.style.width = Math.round(p * 95) + '%');
       let blob, name = slug(card.name || 'card');
       if (kind === 'gif') { blob = await encodeGIF(sc, { width: story ? 405 : 480, story, onProgress }); name += story ? '_story.gif' : '.gif'; }
-      else { const v = videoSupport(); if (!v) throw new Error(L('این دستگاه ضبط ویدیو را پشتیبانی نمی‌کند؛ از GIF استفاده کنید.', 'Video recording is not supported here; use GIF.')); blob = await recordVideo(sc, { width: story ? 540 : 720, story, audioUrl, onProgress }); name += (story ? '_story' : '') + (blob.type.includes('mp4') ? '.mp4' : '.webm'); }
-      const r = await saveToDevice(blob, name); bar.style.width = '100%'; toast(r.ok ? L('ذخیره شد', 'Saved') + (blob.type.includes('webm') ? ' (WebM)' : '') : L('ناموفق', 'Failed'), 3000);
+      else { const v = videoSupport(); if (!v) throw new Error(L('این دستگاه ضبط ویدیو را پشتیبانی نمی‌کند؛ از GIF استفاده کنید.', 'Video recording is not supported here; use GIF.')); const rv = await recordVideo(sc, { width: story ? 540 : 720, story, audioUrl, onProgress }); blob = rv.blob; name += (story ? '_story' : '') + '.' + rv.ext; }
+      const r = await saveToDevice(blob, name); bar.style.width = '100%'; toast(r.ok ? L('ذخیره شد', 'Saved') + (name.endsWith('.webm') ? ' (WebM)' : '') : L('ناموفق', 'Failed'), 3000);
       if (r.ok && r.where === 'documents') toast(L('ذخیره شد در Documents/CardStudio', 'Saved to Documents/CardStudio'), 3500);
       return blob;
     } catch (e) { toast(L('ناموفق: ', 'Failed: ') + (e.message || e), 4500); } finally { setTimeout(() => (prog.style.display = 'none'), 700); rebuild(false); }

@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Invitation · CardStudio</title>
+<style>
+:root{--a:#c9a24a;--d:#14213d;--l:#fbf6ea}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Vazirmatn","Segoe UI",Tahoma,system-ui,sans-serif;background:var(--d);color:var(--l);min-height:100vh;display:flex;justify-content:center;padding:18px}
+.wrap{width:100%;max-width:460px}
+.card{background:var(--l);color:var(--d);border-radius:22px;padding:30px 22px;text-align:center;box-shadow:0 18px 50px rgba(0,0,0,.35);border:2px solid var(--a);position:relative}
+.card:before{content:"";position:absolute;inset:8px;border:1px solid var(--a);border-radius:16px;pointer-events:none;opacity:.7}
+h1{margin:6px 0 4px;font-size:26px;line-height:1.5}
+.sub{opacity:.75;margin:2px 0}
+.names{font-size:34px;font-weight:800;color:var(--a);margin:10px 0;line-height:1.4;filter:brightness(.8)}
+.hello{font-size:14px;opacity:.8}
+.row{margin:8px 0;font-size:16px}
+.cd{display:flex;gap:8px;justify-content:center;margin:16px 0 4px;direction:ltr}
+.cd div{background:var(--d);color:var(--l);border-radius:12px;padding:8px 0;width:68px}
+.cd b{display:block;font-size:24px}.cd small{font-size:11px;opacity:.8}
+button,a.btn{display:block;width:100%;margin-top:10px;padding:13px;border-radius:14px;border:0;font:inherit;font-weight:700;background:var(--a);color:#111;text-align:center;text-decoration:none;cursor:pointer}
+.ghost{background:transparent!important;border:1.5px solid var(--a)!important;color:var(--d)!important}
+.sec{margin-top:18px;background:rgba(255,255,255,.07);border-radius:18px;padding:18px;color:var(--l)}
+.sec h2{margin:0 0 10px;font-size:17px}
+.sec input,.sec textarea{width:100%;padding:11px;border-radius:12px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.1);color:inherit;font:inherit}
+.two{display:flex;gap:10px}.two button{margin-top:0}
+.no{background:#ef476f!important;color:#fff!important}.yes{background:#2a9d8f!important;color:#fff!important}
+.code{direction:ltr;word-break:break-all;background:rgba(0,0,0,.3);padding:10px;border-radius:10px;font-family:monospace;font-size:13px;margin:10px 0}
+.lang{text-align:center;margin-top:14px;font-size:13px}.lang select{background:transparent;color:inherit;border:1px solid rgba(255,255,255,.3);border-radius:8px;padding:4px}
+.lang option{color:#000}
+.err{text-align:center;padding:40px 10px}
+</style>
+</head>
+<body>
+<div class="wrap" id="root"></div>
+<script>
+const S={
+fa:{inv:'دعوت‌نامه',dear:'مهمان گرامی',youInv:'شما دعوت هستید به',by:'از طرف',when:'زمان',where:'مکان',addr:'نشانی',dress:'پوشش',notes:'توضیحات',d:'روز',h:'ساعت',m:'دقیقه',s:'ثانیه',started:'مراسم آغاز شده است',map:'مشاهده روی نقشه',nav:'مسیریابی',cal:'افزودن به تقویم',call:'تماس با میزبان',rsvp:'تأیید حضور',name:'نام شما',plus:'تعداد همراهان',yes:'می‌آیم',no:'نمی‌آیم',thanks:'پاسخ شما ثبت شد',code:'کد پاسخ شما (برای میزبان بفرستید):',wa:'ارسال با واتساپ',copy:'کپی کد',copied:'کپی شد',sent:'پاسخ برای میزبان ارسال شد.',invalid:'لینک دعوت‌نامه معتبر نیست.',to:'تا'},
+en:{inv:'Invitation',dear:'Dear guest',youInv:'You are invited to',by:'Hosted by',when:'When',where:'Where',addr:'Address',dress:'Dress code',notes:'Notes',d:'days',h:'hours',m:'min',s:'sec',started:'The event has started',map:'View on map',nav:'Navigate',cal:'Add to calendar',call:'Call the host',rsvp:'RSVP',name:'Your name',plus:'Number of extra guests',yes:'I\'m coming',no:'I can\'t come',thanks:'Your reply is recorded',code:'Your reply code (send it to the host):',wa:'Send via WhatsApp',copy:'Copy code',copied:'Copied',sent:'Your reply was sent to the host.',invalid:'This invitation link is not valid.',to:'to'},
+ar:{inv:'دعوة',dear:'الضيف الكريم',youInv:'أنتم مدعوون إلى',by:'من',when:'الموعد',where:'المكان',addr:'العنوان',dress:'الزي',notes:'ملاحظات',d:'يوم',h:'ساعة',m:'دقيقة',s:'ثانية',started:'بدأت المناسبة',map:'عرض على الخريطة',nav:'الاتجاهات',cal:'إضافة إلى التقويم',call:'اتصل بالمضيف',rsvp:'تأكيد الحضور',name:'اسمك',plus:'عدد المرافقين',yes:'سأحضر',no:'لن أحضر',thanks:'تم تسجيل ردك',code:'رمز ردك (أرسله للمضيف):',wa:'إرسال عبر واتساب',copy:'نسخ الرمز',copied:'تم النسخ',sent:'تم إرسال ردك للمضيف.',invalid:'رابط الدعوة غير صالح.',to:'إلى'},
+tr:{inv:'Davetiye',dear:'Değerli misafir',youInv:'Davetlisiniz:',by:'Ev sahibi',when:'Zaman',where:'Yer',addr:'Adres',dress:'Kıyafet',notes:'Notlar',d:'gün',h:'saat',m:'dk',s:'sn',started:'Etkinlik başladı',map:'Haritada gör',nav:'Yol tarifi',cal:'Takvime ekle',call:'Ev sahibini ara',rsvp:'Katılım',name:'Adınız',plus:'Ek kişi sayısı',yes:'Geliyorum',no:'Gelemiyorum',thanks:'Yanıtınız kaydedildi',code:'Yanıt kodunuz (ev sahibine gönderin):',wa:'WhatsApp ile gönder',copy:'Kodu kopyala',copied:'Kopyalandı',sent:'Yanıtınız gönderildi.',invalid:'Davetiye bağlantısı geçersiz.',to:'-'},
+ru:{inv:'Приглашение',dear:'Дорогой гость',youInv:'Вы приглашены на',by:'Организатор',when:'Когда',where:'Где',addr:'Адрес',dress:'Дресс-код',notes:'Примечания',d:'дн.',h:'ч',m:'мин',s:'сек',started:'Мероприятие началось',map:'Показать на карте',nav:'Маршрут',cal:'Добавить в календарь',call:'Позвонить',rsvp:'Подтверждение',name:'Ваше имя',plus:'Сколько гостей с вами',yes:'Приду',no:'Не смогу',thanks:'Ответ записан',code:'Ваш код ответа (отправьте организатору):',wa:'Отправить в WhatsApp',copy:'Копировать код',copied:'Скопировано',sent:'Ответ отправлен.',invalid:'Ссылка недействительна.',to:'до'},
+fr:{inv:'Invitation',dear:'Cher invité',youInv:'Vous êtes invité(e) à',by:'De la part de',when:'Quand',where:'Où',addr:'Adresse',dress:'Tenue',notes:'Notes',d:'j',h:'h',m:'min',s:'s',started:'L\'événement a commencé',map:'Voir sur la carte',nav:'Itinéraire',cal:'Ajouter au calendrier',call:'Appeler l\'hôte',rsvp:'Réponse',name:'Votre nom',plus:'Personnes en plus',yes:'Je viens',no:'Je ne viens pas',thanks:'Réponse enregistrée',code:'Votre code de réponse (à envoyer à l\'hôte) :',wa:'Envoyer par WhatsApp',copy:'Copier le code',copied:'Copié',sent:'Votre réponse a été envoyée.',invalid:'Lien d\'invitation invalide.',to:'à'},
+de:{inv:'Einladung',dear:'Lieber Gast',youInv:'Sie sind eingeladen zu',by:'Gastgeber',when:'Wann',where:'Wo',addr:'Adresse',dress:'Dresscode',notes:'Hinweise',d:'Tage',h:'Std',m:'Min',s:'Sek',started:'Die Veranstaltung hat begonnen',map:'Auf Karte ansehen',nav:'Route',cal:'Zum Kalender',call:'Gastgeber anrufen',rsvp:'Zu-/Absage',name:'Ihr Name',plus:'Anzahl Begleitungen',yes:'Ich komme',no:'Ich komme nicht',thanks:'Antwort gespeichert',code:'Ihr Antwortcode (an den Gastgeber senden):',wa:'Per WhatsApp senden',copy:'Code kopieren',copied:'Kopiert',sent:'Ihre Antwort wurde gesendet.',invalid:'Ungültiger Einladungslink.',to:'bis'}
+};
+const RTL=['fa','ar'], root=document.getElementById('root');
+let D=null,lang='fa';
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function dec(h){try{const s=h.replace(/^#/,'').replace(/-/g,'+').replace(/_/g,'/');return JSON.parse(decodeURIComponent(escape(atob(s))))}catch{return null}}
+const T=k=>(S[lang]||S.en)[k]??S.en[k];
+function fmtDate(){ if(!D.d)return ''; const dt=new Date(D.d+'T12:00:00'); const cal=D.cal==='persian'?'-u-ca-persian':D.cal==='islamic'?'-u-ca-islamic':''; try{return dt.toLocaleDateString(lang+cal,{weekday:'long',year:'numeric',month:'long',day:'numeric'})}catch{return D.d} }
+function target(){ if(!D.d)return null; return new Date(D.d+'T'+(D.s||'00:00')+':00'); }
+function ics(){ const d=D.d.replace(/-/g,''),hm=x=>(x||'').replace(':','')+'00',allDay=!D.s;let end=D.f; if(!end&&D.s)end=String((+D.s.slice(0,2)+2)%24).padStart(2,'0')+D.s.slice(2);
+ const e=x=>String(x||'').replace(/\\/g,'\\\\').replace(/;/g,'\;').replace(/,/g,'\\,').replace(/\n/g,'\\n');
+ const L=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//CardStudio//EN','BEGIN:VEVENT','UID:'+(D.e||'x')+'@cardstudio','DTSTAMP:'+new Date().toISOString().replace(/[-:]/g,'').slice(0,15)+'Z','SUMMARY:'+e(D.t||T('inv'))];
+ if(allDay){const n=new Date(D.d+'T12:00:00Z');n.setUTCDate(n.getUTCDate()+1);L.push('DTSTART;VALUE=DATE:'+d,'DTEND;VALUE=DATE:'+n.toISOString().slice(0,10).replace(/-/g,''))}else L.push('DTSTART:'+d+'T'+hm(D.s),'DTEND:'+d+'T'+hm(end));
+ if(D.ve||D.a)L.push('LOCATION:'+e([D.ve,D.a].filter(Boolean).join(', ')));L.push('END:VEVENT','END:VCALENDAR');
+ const blob=new Blob([L.join('\r\n')],{type:'text/calendar'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='invitation.ics';document.body.appendChild(a);a.click();a.remove();}
+function render(){
+  document.documentElement.lang=lang;document.documentElement.dir=RTL.includes(lang)?'rtl':'ltr';
+  if(!D){root.innerHTML='<div class="err">'+esc(T('invalid'))+'</div>';return}
+  const c=D.c||[];const st=document.documentElement.style;st.setProperty('--a',c[0]||'#c9a24a');st.setProperty('--d',c[1]||'#14213d');st.setProperty('--l',c[2]||'#fbf6ea');
+  const time=D.s?(D.s+(D.f?' – '+D.f:'')):'';
+  root.innerHTML=`<div class="card">
+   <div class="hello">${D.gn?esc(D.gn)+' · ':''}${esc(T('youInv'))}</div>
+   <h1>${esc(D.t||T('inv'))}</h1>
+   ${D.n?`<div class="names">${esc(D.n)}</div>`:''}
+   ${D.h?`<div class="sub">${esc(T('by'))} ${esc(D.h)}</div>`:''}
+   ${D.d?`<div class="row">📅 ${esc(fmtDate())}${time?' · 🕒 '+esc(time):''}</div>`:''}
+   ${D.ve?`<div class="row">📍 ${esc(D.ve)}</div>`:''}${D.a?`<div class="row sub">${esc(D.a)}</div>`:''}
+   ${D.dr?`<div class="row sub">👔 ${esc(T('dress'))}: ${esc(D.dr)}</div>`:''}${D.no?`<div class="row sub">${esc(D.no)}</div>`:''}
+   <div class="cd" id="cd"></div>
+   ${D.m?`<a class="btn" href="${esc(D.m)}" target="_blank" rel="noopener">🗺 ${esc(T('map'))}</a><a class="btn ghost" href="${esc(navUrl())}" target="_blank" rel="noopener">🧭 ${esc(T('nav'))}</a>`:(D.ve||D.a)?`<a class="btn ghost" href="${esc(navUrl())}" target="_blank" rel="noopener">🧭 ${esc(T('nav'))}</a>`:''}
+   ${D.d?`<button class="ghost" id="bcal">📆 ${esc(T('cal'))}</button>`:''}
+   ${D.p?`<a class="btn ghost" href="tel:${esc(D.p)}">📞 ${esc(T('call'))}</a>`:''}
+  </div>
+  <div class="sec" id="rs"><h2>${esc(T('rsvp'))}</h2>
+   <input id="nm" placeholder="${esc(T('name'))}" value="${esc(D.gn||'')}" style="margin-bottom:8px">
+   <input id="pl" type="number" min="0" max="20" value="0" placeholder="${esc(T('plus'))}" style="margin-bottom:10px">
+   <div class="two"><button class="yes" id="by">✓ ${esc(T('yes'))}</button><button class="no" id="bn">✗ ${esc(T('no'))}</button></div>
+   <div id="res"></div></div>
+  <div class="lang"><select id="ls">${Object.keys(S).map(k=>`<option value="${k}" ${k===lang?'selected':''}>${k.toUpperCase()}</option>`).join('')}</select></div>`;
+  document.getElementById('ls').onchange=e=>{lang=e.target.value;render()};
+  const bc=document.getElementById('bcal');if(bc)bc.onclick=ics;
+  document.getElementById('by').onclick=()=>reply(true);document.getElementById('bn').onclick=()=>reply(false);
+  tick();
+}
+const navUrl=()=>'https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent([D.ve,D.a].filter(Boolean).join(' '));
+let timer;function tick(){clearInterval(timer);const el=document.getElementById('cd');const t=target();if(!el||!t)return;
+ const f=()=>{let s=Math.floor((t-Date.now())/1000);if(s<=0){el.innerHTML='<div style="width:auto;padding:8px 14px">'+esc(T('started'))+'</div>';clearInterval(timer);return}
+ const d=Math.floor(s/86400),h=Math.floor(s%86400/3600),m=Math.floor(s%3600/60);el.innerHTML=[[d,'d'],[h,'h'],[m,'m'],[s%60,'s']].map(([v,k])=>`<div><b>${v}</b><small>${esc(T(k))}</small></div>`).join('')};f();timer=setInterval(f,1000)}
+async function reply(yes){
+  const gid=D.g||('w'+Math.random().toString(36).slice(2,7)),plus=Math.max(0,Math.min(20,+document.getElementById('pl').value||0)),name=document.getElementById('nm').value.trim();
+  const code=`CS1-${D.e}-${gid}-${yes?'y':'n'}-${yes?plus:0}`;
+  const msg=`${code}${name?' ('+name+')':''}`;
+  let sentRemote=false;
+  if(D.wh){try{await fetch(D.wh,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({code,name,yes,plus,event:D.e,guest:gid,at:new Date().toISOString()}),mode:'no-cors'});sentRemote=true}catch{}}
+  const res=document.getElementById('res');
+  res.innerHTML=`<p>✓ ${esc(sentRemote?T('sent'):T('thanks'))}</p>${sentRemote?'':`<p>${esc(T('code'))}</p><div class="code">${esc(msg)}</div>
+   ${D.w?`<a class="btn" href="https://wa.me/${esc(String(D.w).replace(/\D/g,''))}?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener">${esc(T('wa'))}</a>`:`<a class="btn" href="https://wa.me/?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener">${esc(T('wa'))}</a>`}
+   <button class="ghost" style="color:inherit!important" id="cp">${esc(T('copy'))}</button>`}`;
+  const cp=document.getElementById('cp');if(cp)cp.onclick=async()=>{try{await navigator.clipboard.writeText(msg);cp.textContent=T('copied')}catch{}};
+}
+D=dec(location.hash||'');if(D){lang=S[D.l]?D.l:'fa'}
+render();
+</script>
+</body>
+</html>
