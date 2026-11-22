@@ -19,6 +19,7 @@ import { saveToDevice, shareFiles, printImages, copyText, openExternal, waLink, 
 import { needsWatermark, canUseTemplate } from '../core/entitlements.js';
 import { zipStore } from '../io/zip.js';
 import { styleName, premiumInfo } from './views-home.js';
+import { ENVELOPES, MOODS, moodFor, envelopeFor, buildEnvelopeHTML } from '../io/envelope.js';
 
 const ti = () => (uiLang() === 'en' ? 1 : 0);
 const lbl = (pair) => pair[ti()];
@@ -193,13 +194,21 @@ register('editor', async ({ id }) => {
   // ---------- export sheet
   function openExport() {
     let kind = 'png', pdfPaper = 'auto'; const prog = h('div', { class: 'progress', style: { display: 'none', margin: '10px 0' } }, h('i')), note = h('p', { class: 'muted', style: { fontSize: '12.5px' } }, needsWatermark() ? t('watermarkNote') : '');
-    const opts = [['png', t('png')], ['jpg', t('jpg')], ['pdf', t('pdf')], ['story', t('story')], ['post', t('post')], ['whatsapp', t('whatsapp2')], ['print', t('print')], ['zip', 'ZIP']];
-    const kinds = seg(opts, kind, (v) => (kind = v), 'chips'); kinds.style.flexWrap = 'wrap';
+    const opts = [['png', t('png')], ['jpg', t('jpg')], ['pdf', t('pdf')], ['story', t('story')], ['post', t('post')], ['whatsapp', t('whatsapp2')], ['print', t('print')], ['zip', 'ZIP'], ['envelope', ti() ? 'Envelope (HTML)' : 'پاکت متحرک (HTML)']];
+    let env = envelopeFor(card), mood = moodFor(card), audioFile = null;
+    const envBox = h('div', { style: { display: 'none' } },
+      h('div', { class: 'sec-title' }, h('span', null, ti() ? 'Envelope' : 'پاکت')), chips(Object.entries(ENVELOPES).map(([k, v]) => [k, v.n ? v.n[ti()] : k]), env, (v) => (env = v)),
+      h('div', { class: 'sec-title' }, h('span', null, ti() ? 'Music' : 'موسیقی')), chips(Object.entries(MOODS).map(([k, v]) => [k, v[ti()]]), mood, (v) => { mood = v; audioFile = null; fileLbl.textContent = ''; }),
+      h('div', { class: 'row', style: { marginTop: '8px' } }, h('button', { class: 'btn small', onclick: async () => { const [f] = await pickFile('audio/*'); if (!f) return; if (f.size > 12e6) return toast(ti() ? 'File too large (max 12 MB)' : 'فایل بزرگ است (حداکثر ۱۲ مگابایت)'); audioFile = f; fileLbl.textContent = f.name; } }, ic('music', 16), ti() ? 'My own music' : 'موسیقی خودم'), h('span', { class: 'muted', style: { fontSize: '12px' } }, '')),
+      h('button', { class: 'btn small block', style: { marginTop: '8px' }, onclick: async () => { await prepare(card); const html = await buildEnvelopeHTML(card, { envelope: env, mood, audioFile, to: card.data?.guest || '' }); const fr = h('iframe', { style: { width: '100%', height: '60vh', border: 0, borderRadius: '12px' } }); fr.srcdoc = html; modal(ti() ? 'Preview' : 'پیش‌نمایش', fr, { sheet: true }); } }, ic('play', 16), ti() ? 'Preview' : 'پیش‌نمایش'));
+    const fileLbl = envBox.querySelector('.muted');
+    const kinds = seg(opts, kind, (v) => { kind = v; envBox.style.display = v === 'envelope' ? '' : 'none'; }, 'chips'); kinds.style.flexWrap = 'wrap';
     const run = async (action) => {
       prog.style.display = ''; const bar = prog.firstChild; bar.style.width = '8%';
       try {
         await save(true); await prepare(card); const files = []; const n = card.pages.length;
-        if (kind === 'pdf' || kind === 'print') { const blob = await renderPDF(card, { print: kind === 'print' }); files.push({ blob, name: fileName(card, kind === 'print' ? 'print' : 'pdf', 0, 'pdf') }); }
+        if (kind === 'envelope') { const html = await buildEnvelopeHTML(card, { envelope: env, mood, audioFile, to: card.data?.guest || '' }); files.push({ blob: new Blob([html], { type: 'text/html' }), name: fileName(card, 'envelope', 0, 'html') }); }
+        else if (kind === 'pdf' || kind === 'print') { const blob = await renderPDF(card, { print: kind === 'print' }); files.push({ blob, name: fileName(card, kind === 'print' ? 'print' : 'pdf', 0, 'pdf') }); }
         else if (kind === 'zip') { const parts = []; for (let i = 0; i < n; i++) { const b = await renderBlob(card, i, 'png'); parts.push({ name: fileName(card, 'png', i), data: new Uint8Array(await b.arrayBuffer()) }); bar.style.width = 10 + (i / n) * 80 + '%'; } files.push({ blob: new Blob([zipStore(parts)], { type: 'application/zip' }), name: `${(card.name || 'cards').replace(/\s+/g, '_')}.zip` }); }
         else for (let i = 0; i < n; i++) { const blob = await renderBlob(card, i, kind); files.push({ blob, name: fileName(card, kind, i) }); bar.style.width = 10 + (i / n) * 80 + '%'; }
         bar.style.width = '95%';
@@ -211,7 +220,7 @@ register('editor', async ({ id }) => {
       setTimeout(() => (prog.style.display = 'none'), 600);
     };
     const linkRow = h('div', { class: 'row wrap' }, h('button', { class: 'btn small', onclick: () => openExternal(waLink('', card.data.title || occName(occById[card.occasion], card.lang))) }, ic('whatsapp', 16), t('toWhatsapp')), h('button', { class: 'btn small', onclick: () => openExternal(tgLink(card.data.title || occName(occById[card.occasion], card.lang))) }, ic('send', 16), t('toTelegram')), h('button', { class: 'btn small', onclick: () => openExternal(mailLink('', card.data.title || occName(occById[card.occasion], card.lang), '')) }, ic('mail', 16), t('toEmail')));
-    modal(t('export'), h('div', null, kinds, note, prog, h('div', { class: 'row', style: { marginTop: '10px' } }, h('button', { class: 'btn grow', onclick: () => run('save') }, ic('download'), kind === 'print' ? t('print') : t('saveGallery')), h('button', { class: 'btn primary grow', onclick: () => run('share') }, ic('share'), t('shareTo'))), h('div', { class: 'sec-title' }, h('span', null, t('toOthers'))), linkRow), { sheet: true });
+    modal(t('export'), h('div', null, kinds, envBox, note, prog, h('div', { class: 'row', style: { marginTop: '10px' } }, h('button', { class: 'btn grow', onclick: () => run('save') }, ic('download'), kind === 'print' ? t('print') : t('saveGallery')), h('button', { class: 'btn primary grow', onclick: () => run('share') }, ic('share'), t('shareTo'))), h('div', { class: 'sec-title' }, h('span', null, t('toOthers'))), linkRow), { sheet: true });
   }
 
   // ---------- tool strip
