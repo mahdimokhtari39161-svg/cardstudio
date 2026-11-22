@@ -11,8 +11,8 @@ const S = {
   job: L('مدیر عامل|Chief Executive|المدير التنفيذي|Genel Müdür|Генеральный директор|Directeur général|Geschäftsführer'),
   guest: L('مهمان گرامی|Dear Guest|الضيف الكريم|Değerli Misafir|Дорогой гость|Cher invité|Lieber Gast'),
 };
-const COUPLE_OCC = new Set(['wedding', 'engagement', 'aghd', 'anniversary', 'meetAnniversary', 'romantic', 'spouseBirthday']);
-const PERSON_OCC = new Set(['birthday', 'kidBirthday', 'birthdayParty', 'graduation', 'gradParty', 'retirement', 'newborn', 'babyShower', 'genderReveal', 'promotion', 'success', 'mothersDay', 'fathersDay', 'daughtersDay', 'sonsDay', 'childrensDay', 'memorial', 'condolence', 'sympathy', 'friendship']);
+export const COUPLE_OCC = new Set(['wedding', 'engagement', 'aghd', 'anniversary', 'meetAnniversary', 'romantic', 'spouseBirthday']);
+export const PERSON_OCC = new Set(['birthday', 'kidBirthday', 'birthdayParty', 'graduation', 'gradParty', 'retirement', 'newborn', 'babyShower', 'genderReveal', 'promotion', 'success', 'mothersDay', 'fathersDay', 'daughtersDay', 'sonsDay', 'childrensDay', 'memorial', 'condolence', 'sympathy', 'friendship']);
 
 function plusDays(n) { const d = new Date(); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10); }
 

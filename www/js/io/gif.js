@@ -32,13 +32,26 @@ function lzw(indices, minCode) {
 }
 function subBlocks(bytes) { const out = []; for (let i = 0; i < bytes.length; i += 255) { const c = bytes.slice(i, i + 255); out.push(c.length, ...c); } out.push(0); return out; }
 
-export async function encodeGIF(scene, { width = 480, fps = 12, onProgress } = {}) {
-  const page = scene.page, k = width / page.w, W = Math.round(page.w * k), H = Math.round(page.h * k);
+// Frame renderer: plain card, or the card centred on a blurred story background (9:16).
+export function frameRenderer(scene, width, story = false) {
+  const page = scene.page;
+  if (!story) { const k = width / page.w; return { W: Math.round(page.w * k) & ~1, H: Math.round(page.h * k) & ~1, draw: (ctx, t) => renderFrame(ctx, scene, t, k) }; }
+  const W = width & ~1, H = Math.round((width * 16) / 9) & ~1, cardW = Math.round(W * 0.9), k = cardW / page.w, cardH = Math.round(page.h * k), tmp = document.createElement('canvas'); tmp.width = cardW; tmp.height = cardH;
+  const tctx = tmp.getContext('2d');
+  return { W, H, draw: (ctx, t) => {
+    renderFrame(tctx, scene, t, k);
+    ctx.save(); ctx.fillStyle = '#0a0a12'; ctx.fillRect(0, 0, W, H); ctx.filter = 'blur(28px) brightness(.7)'; const s = Math.max(W / cardW, H / cardH); ctx.drawImage(tmp, (W - cardW * s) / 2, (H - cardH * s) / 2, cardW * s, cardH * s); ctx.restore();
+    const fit = Math.min(1, (H * 0.92) / cardH), dw = cardW * fit, dh = cardH * fit; ctx.save(); ctx.shadowColor = 'rgba(0,0,0,.5)'; ctx.shadowBlur = 30; ctx.drawImage(tmp, (W - dw) / 2, (H - dh) / 2, dw, dh); ctx.restore();
+  } };
+}
+
+export async function encodeGIF(scene, { width = 480, fps = 12, story = false, onProgress } = {}) {
+  const fr = frameRenderer(scene, width, story), W = fr.W, H = fr.H;
   const cv = document.createElement('canvas'); cv.width = W; cv.height = H; const ctx = cv.getContext('2d', { willReadFrequently: true });
   const n = Math.max(2, Math.round(scene.duration * fps)), delay = Math.round(100 / fps), frames = [];
   const samples = [];
   for (let i = 0; i < n; i++) {
-    renderFrame(ctx, scene, (i / n) * scene.duration, k);
+    fr.draw(ctx, (i / n) * scene.duration);
     const d = ctx.getImageData(0, 0, W, H).data; frames.push(d);
     if (i % 3 === 0) for (let p = 0; p < d.length; p += 4 * 37) samples.push(d[p], d[p + 1], d[p + 2]);
     onProgress?.((i + 1) / n * 0.6); if (i % 4 === 0) await new Promise((r) => setTimeout(r));
@@ -67,9 +80,9 @@ export function videoSupport() {
   return null;
 }
 
-export async function recordVideo(scene, { width = 540, fps = 30, audioUrl = '', onProgress } = {}) {
+export async function recordVideo(scene, { width = 540, fps = 30, audioUrl = '', story = false, onProgress } = {}) {
   const sup = videoSupport(); if (!sup) throw new Error('video-unsupported');
-  const page = scene.page, k = width / page.w, W = Math.round(page.w * k) & ~1, H = Math.round(page.h * k) & ~1;
+  const fr = frameRenderer(scene, width, story), W = fr.W, H = fr.H;
   const cv = document.createElement('canvas'); cv.width = W; cv.height = H; const ctx = cv.getContext('2d');
   const stream = cv.captureStream(fps); let ac, audio;
   if (audioUrl) {
@@ -84,8 +97,8 @@ export async function recordVideo(scene, { width = 540, fps = 30, audioUrl = '',
   const done = new Promise((res) => (rec.onstop = res));
   rec.start(250); audio?.play().catch(() => {});
   const t0 = performance.now();
-  await new Promise((res) => { const loop = () => { const t = (performance.now() - t0) / 1000; if (t >= scene.duration) return res(); renderFrame(ctx, scene, t, k); onProgress?.(t / scene.duration); requestAnimationFrame(loop); }; loop(); });
-  renderFrame(ctx, scene, scene.duration - 0.01, k); await new Promise((r) => setTimeout(r, 200));
+  await new Promise((res) => { const loop = () => { const t = (performance.now() - t0) / 1000; if (t >= scene.duration) return res(); fr.draw(ctx, t); onProgress?.(t / scene.duration); requestAnimationFrame(loop); }; loop(); });
+  fr.draw(ctx, scene.duration - 0.01); await new Promise((r) => setTimeout(r, 200));
   rec.stop(); audio?.pause(); await done; ac?.close?.();
   return { blob: new Blob(chunks, { type: sup.mime.split(';')[0] }), ext: sup.ext };
 }

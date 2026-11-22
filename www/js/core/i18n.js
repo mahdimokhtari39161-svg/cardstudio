@@ -50,4 +50,4 @@ export const setUILang = (l) => { cur = S[l] ? l : 'fa'; document.documentElemen
 export const uiLang = () => cur;
 export const isUIRTL = () => cur !== 'en';
 export const t = (k) => S[cur]?.[k] ?? S.en[k] ?? S.fa[k] ?? k;
-export const UI_LANGS = [['fa', 'فارسی'], ['en', 'English'], ['ar', 'العربية']];
+export const UI_LANGS = [['fa', 'فارسی'], ['en', 'English']];

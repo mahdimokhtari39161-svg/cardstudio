@@ -84,3 +84,12 @@ export async function printImages(dataUrls, pdfBlob) {
   d.open(); d.write(`<html><head><style>@page{margin:0}body{margin:0}img{width:100%;page-break-after:always;display:block}</style></head><body>${dataUrls.map((u) => `<img src="${u}">`).join('')}</body></html>`); d.close();
   await new Promise((r) => setTimeout(r, 400)); f.contentWindow.focus(); f.contentWindow.print(); setTimeout(() => f.remove(), 3000);
 }
+
+// Share plain text (link) through the system share sheet; falls back to copying.
+export async function shareText(title, text) {
+  try {
+    if (isNative() && P('Share')) { await P('Share').share({ title, text, dialogTitle: title || 'Share' }); return true; }
+    if (navigator.share) { await navigator.share({ title, text }); return true; }
+  } catch (e) { if (e?.name === 'AbortError') return false; }
+  await copyText(text); return false;
+}

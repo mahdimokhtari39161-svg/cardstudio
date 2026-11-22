@@ -61,14 +61,14 @@ export function templatesFor(occId) {
 export const allTemplates = () => OCCASIONS.flatMap((o) => templatesFor(o.id));
 export function templateCount() { return allTemplates().length; }
 
-export function parseTplId(id) { const [occ, style, v] = id.split('.'); return { occ, style, v: +v || 0 }; }
-export function findTemplate(id) { const p = parseTplId(id); return templatesFor(p.occ).find((t) => t.id === id) || null; }
+export function parseTplId(id) { const [base, pal] = String(id).split('@'); const [occ, style, v] = base.split('.'); return { occ, style, v: +v || 0, pal: pal || '', base }; }
+export function findTemplate(id) { const p = parseTplId(id); const t = templatesFor(p.occ).find((x) => x.id === p.base); return t ? (p.pal ? { ...t, id, pal: p.pal } : t) : null; }
 
 // Build the page spec of a template for a language / page size.
 export function buildSpec(tplId, { lang = 'fa', W = 1000, H = 1400, seed } = {}) {
   const t = findTemplate(tplId);
   if (!t) throw new Error('unknown template ' + tplId);
-  const occ = occById[t.occ], pal = PALETTES[paletteKeyFor(occ, t.v)];
+  const occ = occById[t.occ], pal = PALETTES[t.pal && PALETTES[t.pal] ? t.pal : paletteKeyFor(occ, t.v)];
   const ctx = { W, H, lang, rtl: RTL_LANGS.includes(lang), occ, kind: occ.k === 'brand' ? 'brand' : occ.id === 'condolence' || occ.id === 'sympathy' ? 'condolence' : occ.k, pal, motif: occ.m, alt: t.v === 1, v: t.v, seed: seed || t.id };
   if (t.build) return t.build(ctx);
   return STYLES[t.style].build(ctx);
@@ -85,7 +85,7 @@ export function cardFromTemplate(tplId, { lang = 'fa', w, h, calendar } = {}) {
   const W = w || size.w, H = h || size.h;
   const card = newCard({ occasion: occ.id, lang, w: W, h: H, tplId, calendar: calendar || (lang === 'fa' ? 'persian' : 'gregorian') });
   card.sample = true; card.tier = t.premium ? 'premium' : 'free';
-  card.style = t.style;
+  card.style = t.style; card.pal = PALETTES[t.pal && PALETTES[t.pal] ? t.pal : paletteKeyFor(occ, t.v)];
   return applyTemplateSpec(card, buildSpec(tplId, { lang, W, H }), tplId);
 }
 
@@ -95,7 +95,7 @@ export function retemplate(card, tplId) {
   const old = card.pages.slice(1);
   applyTemplateSpec(card, buildSpec(tplId, { lang: card.lang, W, H }), tplId);
   card.pages.push(...old);
-  card.tier = t.premium ? 'premium' : 'free'; card.style = t.style; card.occasion = t.occ || card.occasion;
+  card.tier = t.premium ? 'premium' : 'free'; card.style = t.style; card.occasion = t.occ || card.occasion; card.pal = PALETTES[t.pal && PALETTES[t.pal] ? t.pal : paletteKeyFor(occById[card.occasion], t.v)];
   return card;
 }
 
