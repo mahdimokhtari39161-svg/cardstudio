@@ -72,7 +72,7 @@ register('prostudio',async()=>{
       clear(output);
       let note=L('پیشنهاد آفلاین بر اساس مناسبت، رنگ و سبک انتخاب شد.','Offline design suggestions were matched to the occasion, colour and style.');
       if(Settings.get('aiEndpoint')&&Settings.get('aiKey')){
-        try{note=await aiText({endpoint:Settings.get('aiEndpoint'),key:Settings.get('aiKey'),model:Settings.get('aiModel')||'gpt-4o-mini',prompt:L('یک راهنمای طراحی کوتاه و کاربردی به فارسی برای این کارت بنویس: ','Write a concise practical art direction for this invitation: ')+brief);}
+        try{note=await aiText({endpoint:Settings.get('aiEndpoint'),key:Settings.get('aiKey'),model:Settings.get('aiModel')||'gpt-4o-mini',prompt:L('یک راهنمای طراحی کوتاه و کاربردی به فارسی برای این کارت بنویس: ','Write a concise practical art direction for this invitation: ')+brief});}
         catch(e){note=L('هوش مصنوعی آنلاین در دسترس نبود؛ پیشنهادهای آفلاین آماده شدند.','Online AI was unavailable; offline suggestions are ready.');}
       }
       const designs=suggestDesigns({occ:occasion.value,lang:lang(),colorPref:color.value,stylePref:style.value,n:8,seed:brief});
@@ -204,7 +204,7 @@ register('prostudio',async()=>{
       h('p',{class:'pro-muted'},L('قالب‌های رایگان و ویژه در برنامه وجود دارند. سیستم قفل قالب‌های ویژه از قبل فعال است.','Free and premium templates already exist. Premium template locking is already available.')),
       h('p',{class:'pro-muted'},hasPaymentProvider()?L('درگاه پرداخت ثبت شده است؛ فروش باید از مسیر همان ارائه‌دهنده انجام شود.','A payment provider is registered; sales must use it.'):L('خرید واقعی هنوز فعال نیست و هیچ وجهی دریافت نمی‌شود. قبل از فروش، درگاه معتبر باید متصل و آزمایش شود.','Real purchases are not active and no payment is collected. A payment provider must be connected and tested before sales.')),
       h('button',{class:'btn primary block',onclick:()=>go('settings')},ic('settings',14),L('تنظیمات اشتراک','Plan settings')),
-      h('button',{class:'btn block',onclick:()=>go('home')},ic('grid',14),L('مشاهده قالب‌ها','Browse templates')));
+      h('button',{class:'btn block',onclick:()=>go('home')},ic('grid',14),L('مشاهده قالب‌ها','Browse templates'))));
   }
 
   render();
