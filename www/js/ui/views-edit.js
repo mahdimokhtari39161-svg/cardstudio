@@ -19,7 +19,8 @@ import { saveToDevice, shareFiles, printImages, copyText, openExternal, waLink, 
 import { needsWatermark, canUseTemplate } from '../core/entitlements.js';
 import { zipStore } from '../io/zip.js';
 import { styleName, premiumInfo } from './views-home.js';
-import { ENVELOPES, MOODS, moodFor, envelopeFor, buildEnvelopeHTML } from '../io/envelope.js';
+import { ENVELOPES, MOODS, moodFor, envelopeFor, buildEnvelopeHTML, buildCover, SHARE_TEXT } from '../io/envelope.js';
+import { listTracks, addTrack, deleteTrack, CATS, MAX_BYTES } from '../io/library.js';
 
 const ti = () => (uiLang() === 'en' ? 1 : 0);
 const lbl = (pair) => pair[ti()];
@@ -195,25 +196,36 @@ register('editor', async ({ id }) => {
   function openExport() {
     let kind = 'png', pdfPaper = 'auto'; const prog = h('div', { class: 'progress', style: { display: 'none', margin: '10px 0' } }, h('i')), note = h('p', { class: 'muted', style: { fontSize: '12.5px' } }, needsWatermark() ? t('watermarkNote') : '');
     const opts = [['png', t('png')], ['jpg', t('jpg')], ['pdf', t('pdf')], ['story', t('story')], ['post', t('post')], ['whatsapp', t('whatsapp2')], ['print', t('print')], ['zip', 'ZIP'], ['envelope', ti() ? 'Envelope (HTML)' : 'پاکت متحرک (HTML)']];
-    let env = envelopeFor(card), mood = moodFor(card), audioFile = null;
+    let env = envelopeFor(card), mood = moodFor(card), audioFile = null, audioData = '';
+    const mourning = mood === 'elegy', en = !!ti();
+    const musicLbl = h('span', { class: 'muted', style: { fontSize: '12.5px' } }, '');
+    const envOpts = () => ({ envelope: env, mood, audioFile, audioData, to: card.data?.guest || '' });
+    const pickTrack = async () => {
+      let tracks = await listTracks(); const box = h('div', { class: 'list' });
+      const drawL = () => { box.replaceChildren(...(tracks.length ? tracks.map((r) => h('div', { class: 'list-item' }, h('button', { style: { background: 'none', border: 0, flex: 1, textAlign: 'start', color: 'inherit' }, onclick: () => { audioData = r.data; audioFile = null; musicLbl.textContent = `♪ ${r.name}${r.artist ? ' — ' + r.artist : ''}`; m.close(); } }, h('b', null, r.name), h('small', null, `${r.artist || ''} · ${CATS[r.cat]?.[ti()] || ''}`)), h('button', { class: 'icon-btn', onclick: () => { const a = new Audio(r.data); a.play().catch(() => {}); setTimeout(() => a.pause(), 8000); } }, ic('play', 18)), h('button', { class: 'icon-btn', onclick: async () => { await deleteTrack(r.k); tracks = await listTracks(); drawL(); } }, ic('trash', 18)))) : [h('div', { class: 'empty' }, en ? 'Your library is empty. Add your own audio files (eulogy, songs…).' : 'کتابخانه خالی است. فایل‌های صوتی خودتان را (مداحی، آهنگ و…) اضافه کنید.')])); };
+      drawL();
+      const add = async () => { const [f] = await pickFile('audio/*'); if (!f) return; if (f.size > MAX_BYTES) return toast(en ? 'File too large (max 12 MB)' : 'فایل بزرگ است (حداکثر ۱۲ مگابایت)'); let cat = mourning ? 'eulogy' : 'other'; const nm = h('input', { class: 'input', value: f.name.replace(/\.[^.]+$/, '') }), ar = h('input', { class: 'input', placeholder: en ? 'Artist / singer / reciter' : 'نام خواننده / مداح' });
+        modal(en ? 'Add to library' : 'افزودن به کتابخانه', h('div', null, field(en ? 'Title' : 'عنوان', nm), field(en ? 'Artist' : 'خواننده / مداح', ar), field(en ? 'Category' : 'دسته', chips(Object.entries(CATS).map(([k, v]) => [k, v[ti()]]), cat, (v) => (cat = v)))), { actions: [{ label: t('cancel') }, { label: t('ok'), primary: true, onClick: async () => { try { await addTrack(f, { name: nm.value.trim(), artist: ar.value.trim(), cat }); tracks = await listTracks(); drawL(); } catch (e) { toast(t('failed')); } } }] }); };
+      const m = modal(en ? 'My music library' : 'کتابخانهٔ موسیقی من', h('div', null, h('p', { class: 'muted', style: { fontSize: '12.5px', marginTop: 0 } }, en ? 'Only audio you own or are allowed to share. Files stay on your device.' : 'فقط فایل‌هایی که خودتان مالک آن‌ها هستید یا اجازهٔ انتشارشان را دارید. فایل‌ها فقط روی دستگاه شما می‌مانند.'), h('button', { class: 'btn block', onclick: add }, ic('plus'), en ? 'Add audio file' : 'افزودن فایل صوتی'), h('div', { style: { height: '10px' } }), box), { sheet: true });
+    };
     const envBox = h('div', { style: { display: 'none' } },
-      h('div', { class: 'sec-title' }, h('span', null, ti() ? 'Envelope' : 'پاکت')), chips(Object.entries(ENVELOPES).map(([k, v]) => [k, v.n ? v.n[ti()] : k]), env, (v) => (env = v)),
-      h('div', { class: 'sec-title' }, h('span', null, ti() ? 'Music' : 'موسیقی')), chips(Object.entries(MOODS).map(([k, v]) => [k, v[ti()]]), mood, (v) => { mood = v; audioFile = null; fileLbl.textContent = ''; }),
-      h('div', { class: 'row', style: { marginTop: '8px' } }, h('button', { class: 'btn small', onclick: async () => { const [f] = await pickFile('audio/*'); if (!f) return; if (f.size > 12e6) return toast(ti() ? 'File too large (max 12 MB)' : 'فایل بزرگ است (حداکثر ۱۲ مگابایت)'); audioFile = f; fileLbl.textContent = f.name; } }, ic('music', 16), ti() ? 'My own music' : 'موسیقی خودم'), h('span', { class: 'muted', style: { fontSize: '12px' } }, '')),
-      h('button', { class: 'btn small block', style: { marginTop: '8px' }, onclick: async () => { await prepare(card); const html = await buildEnvelopeHTML(card, { envelope: env, mood, audioFile, to: card.data?.guest || '' }); const fr = h('iframe', { style: { width: '100%', height: '60vh', border: 0, borderRadius: '12px' } }); fr.srcdoc = html; modal(ti() ? 'Preview' : 'پیش‌نمایش', fr, { sheet: true }); } }, ic('play', 16), ti() ? 'Preview' : 'پیش‌نمایش'));
-    const fileLbl = envBox.querySelector('.muted');
+      h('div', { class: 'sec-title' }, h('span', null, en ? 'Envelope' : 'پاکت')), chips(Object.entries(ENVELOPES).map(([k, v]) => [k, v.n ? v.n[ti()] : k]), env, (v) => (env = v)),
+      h('div', { class: 'sec-title' }, h('span', null, en ? 'Music' : 'موسیقی')), chips(Object.entries(MOODS).map(([k, v]) => [k, v[ti()]]), mood, (v) => { mood = v; audioFile = null; audioData = ''; musicLbl.textContent = ''; }),
+      h('p', { class: 'muted', style: { fontSize: '12.5px', margin: '6px 0' } }, en ? 'For a eulogy (noha / maddahi) or any song, choose your own recording from “My library”.' : 'برای مداحی و نوحه یا هر آهنگ دلخواه، فایل صوتی خودتان را از «کتابخانهٔ من» انتخاب کنید.'),
+      h('div', { class: 'row wrap', style: { marginTop: '8px' } }, h('button', { class: 'btn small', onclick: pickTrack }, ic('music', 16), en ? 'My library' : 'کتابخانهٔ من'), h('button', { class: 'btn small', onclick: async () => { const [f] = await pickFile('audio/*'); if (!f) return; if (f.size > MAX_BYTES) return toast(en ? 'File too large (max 12 MB)' : 'فایل بزرگ است (حداکثر ۱۲ مگابایت)'); audioFile = f; audioData = ''; musicLbl.textContent = '♪ ' + f.name; } }, ic('file', 16), en ? 'Pick a file once' : 'انتخاب فایل'), musicLbl),
+      h('button', { class: 'btn small block', style: { marginTop: '8px' }, onclick: async () => { await prepare(card); const html = await buildEnvelopeHTML(card, envOpts()); const fr = h('iframe', { style: { width: '100%', height: '60vh', border: 0, borderRadius: '12px' } }); fr.srcdoc = html; modal(en ? 'Preview' : 'پیش‌نمایش', fr, { sheet: true }); } }, ic('play', 16), en ? 'Preview' : 'پیش‌نمایش'));
     const kinds = seg(opts, kind, (v) => { kind = v; envBox.style.display = v === 'envelope' ? '' : 'none'; }, 'chips'); kinds.style.flexWrap = 'wrap';
     const run = async (action) => {
       prog.style.display = ''; const bar = prog.firstChild; bar.style.width = '8%';
       try {
         await save(true); await prepare(card); const files = []; const n = card.pages.length;
-        if (kind === 'envelope') { const html = await buildEnvelopeHTML(card, { envelope: env, mood, audioFile, to: card.data?.guest || '' }); files.push({ blob: new Blob([html], { type: 'text/html' }), name: fileName(card, 'envelope', 0, 'html') }); }
+        if (kind === 'envelope') { const html = await buildEnvelopeHTML(card, envOpts()); const cover = await buildCover(card, { envelope: env, to: card.data?.guest || '' }); files.push({ blob: cover, name: fileName(card, 'envelope', 0, 'jpg') }, { blob: new Blob([html], { type: 'text/html' }), name: fileName(card, 'envelope', 0, 'html') }); }
         else if (kind === 'pdf' || kind === 'print') { const blob = await renderPDF(card, { print: kind === 'print' }); files.push({ blob, name: fileName(card, kind === 'print' ? 'print' : 'pdf', 0, 'pdf') }); }
         else if (kind === 'zip') { const parts = []; for (let i = 0; i < n; i++) { const b = await renderBlob(card, i, 'png'); parts.push({ name: fileName(card, 'png', i), data: new Uint8Array(await b.arrayBuffer()) }); bar.style.width = 10 + (i / n) * 80 + '%'; } files.push({ blob: new Blob([zipStore(parts)], { type: 'application/zip' }), name: `${(card.name || 'cards').replace(/\s+/g, '_')}.zip` }); }
         else for (let i = 0; i < n; i++) { const blob = await renderBlob(card, i, kind); files.push({ blob, name: fileName(card, kind, i) }); bar.style.width = 10 + (i / n) * 80 + '%'; }
         bar.style.width = '95%';
         if (kind === 'print') { if (action === 'share') await shareFiles(files, { title: card.name || 'CardStudio' }); else { const urls = []; for (let i = 0; i < n; i++) urls.push(renderVariant(card, i, 'print', { width: 1700 }).toDataURL('image/jpeg', 0.9)); await printImages(urls, files[0].blob); } }
-        else if (action === 'share') await shareFiles(files, { title: card.name || occName(occById[card.occasion], card.lang), text: '' });
+        else if (action === 'share') await shareFiles(files, { title: card.name || occName(occById[card.occasion], card.lang), text: kind === 'envelope' ? (SHARE_TEXT[card.lang] || SHARE_TEXT.en) : '' });
         else { let where = ''; for (const f of files) { const r = await saveToDevice(f.blob, f.name); if (!r.ok) throw new Error(r.error || 'save failed'); where = r.where; } toast(`${t('savedTo')} ${where === 'gallery' ? t('gallery') : where === 'documents' ? 'Documents/CardStudio' : where === 'download' ? 'Downloads' : ''}`, 3200); }
         bar.style.width = '100%';
       } catch (e) { if (e?.name !== 'AbortError') toast(t('failed') + ': ' + (e.message || e), 4000); }
