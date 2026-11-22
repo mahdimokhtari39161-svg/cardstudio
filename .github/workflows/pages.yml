@@ -30,6 +30,8 @@ jobs:
           node-version: 22
       - name: Install dependencies
         run: npm install --no-audit --no-fund
+      - name: Check Pro Studio JavaScript syntax
+        run: node --check www/extensions/pro-studio.js
       - name: Download and bundle CC0 music library
         run: node scripts/download-music.mjs
       - name: Optimize bundled music for mobile
