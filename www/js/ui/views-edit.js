@@ -19,7 +19,9 @@ import { saveToDevice, shareFiles, printImages, copyText, openExternal, waLink, 
 import { needsWatermark, canUseTemplate } from '../core/entitlements.js';
 import { zipStore } from '../io/zip.js';
 import { styleName, premiumInfo } from './views-home.js';
-import { ENVELOPES, MOODS, moodFor, envelopeFor, buildEnvelopeHTML, buildCover, SHARE_TEXT } from '../io/envelope.js';
+import { ENVELOPES, MOODS, moodFor, envelopeFor, buildEnvelopeHTML, buildCover, SHARE_TEXT, SHARE_VIDEO_TEXT } from '../io/envelope.js';
+import { recordEnvelopeVideo } from '../io/envvideo.js';
+import { videoSupport } from '../io/gif.js';
 import { listTracks, addTrack, deleteTrack, CATS, MAX_BYTES } from '../io/library.js';
 
 const ti = () => (uiLang() === 'en' ? 1 : 0);
@@ -195,7 +197,7 @@ register('editor', async ({ id }) => {
   // ---------- export sheet
   function openExport() {
     let kind = 'png', pdfPaper = 'auto'; const prog = h('div', { class: 'progress', style: { display: 'none', margin: '10px 0' } }, h('i')), note = h('p', { class: 'muted', style: { fontSize: '12.5px' } }, needsWatermark() ? t('watermarkNote') : '');
-    const opts = [['png', t('png')], ['jpg', t('jpg')], ['pdf', t('pdf')], ['story', t('story')], ['post', t('post')], ['whatsapp', t('whatsapp2')], ['print', t('print')], ['zip', 'ZIP'], ['envelope', ti() ? 'Envelope (HTML)' : 'پاکت متحرک (HTML)']];
+    const opts = [['envvideo', ti() ? '🎬 Envelope video (WhatsApp/Telegram)' : '🎬 ویدیوی پاکت (واتساپ/تلگرام)'], ['png', t('png')], ['jpg', t('jpg')], ['pdf', t('pdf')], ['story', t('story')], ['post', t('post')], ['whatsapp', t('whatsapp2')], ['print', t('print')], ['zip', 'ZIP'], ['envelope', ti() ? 'Envelope (HTML)' : 'پاکت متحرک (HTML)']];
     let env = envelopeFor(card), mood = moodFor(card), audioFile = null, audioData = '';
     const mourning = mood === 'elegy', en = !!ti();
     const musicLbl = h('span', { class: 'muted', style: { fontSize: '12.5px' } }, '');
@@ -214,18 +216,19 @@ register('editor', async ({ id }) => {
       h('p', { class: 'muted', style: { fontSize: '12.5px', margin: '6px 0' } }, en ? 'For a eulogy (noha / maddahi) or any song, choose your own recording from “My library”.' : 'برای مداحی و نوحه یا هر آهنگ دلخواه، فایل صوتی خودتان را از «کتابخانهٔ من» انتخاب کنید.'),
       h('div', { class: 'row wrap', style: { marginTop: '8px' } }, h('button', { class: 'btn small', onclick: pickTrack }, ic('music', 16), en ? 'My library' : 'کتابخانهٔ من'), h('button', { class: 'btn small', onclick: async () => { const [f] = await pickFile('audio/*'); if (!f) return; if (f.size > MAX_BYTES) return toast(en ? 'File too large (max 12 MB)' : 'فایل بزرگ است (حداکثر ۱۲ مگابایت)'); audioFile = f; audioData = ''; musicLbl.textContent = '♪ ' + f.name; } }, ic('file', 16), en ? 'Pick a file once' : 'انتخاب فایل'), musicLbl),
       h('button', { class: 'btn small block', style: { marginTop: '8px' }, onclick: async () => { await prepare(card); const html = await buildEnvelopeHTML(card, envOpts()); const fr = h('iframe', { style: { width: '100%', height: '60vh', border: 0, borderRadius: '12px' } }); fr.srcdoc = html; modal(en ? 'Preview' : 'پیش‌نمایش', fr, { sheet: true }); } }, ic('play', 16), en ? 'Preview' : 'پیش‌نمایش'));
-    const kinds = seg(opts, kind, (v) => { kind = v; envBox.style.display = v === 'envelope' ? '' : 'none'; }, 'chips'); kinds.style.flexWrap = 'wrap';
+    const kinds = seg(opts, kind, (v) => { kind = v; envBox.style.display = v === 'envelope' || v === 'envvideo' ? '' : 'none'; }, 'chips'); kinds.style.flexWrap = 'wrap';
     const run = async (action) => {
       prog.style.display = ''; const bar = prog.firstChild; bar.style.width = '8%';
       try {
         await save(true); await prepare(card); const files = []; const n = card.pages.length;
-        if (kind === 'envelope') { const html = await buildEnvelopeHTML(card, envOpts()); const cover = await buildCover(card, { envelope: env, to: card.data?.guest || '' }); files.push({ blob: cover, name: fileName(card, 'envelope', 0, 'jpg') }, { blob: new Blob([html], { type: 'text/html' }), name: fileName(card, 'envelope', 0, 'html') }); }
+        if (kind === 'envvideo') { if (!videoSupport()) throw new Error(ti() ? 'Video recording is not supported on this device; use the HTML envelope.' : 'این دستگاه ضبط ویدیو را پشتیبانی نمی‌کند؛ از «پاکت متحرک (HTML)» استفاده کنید.'); const o = envOpts(); const r = await recordEnvelopeVideo(card, { envelope: o.envelope, mood: o.mood, audioData: o.audioData, audioFile: o.audioFile, to: o.to, onProgress: (p) => (bar.style.width = 8 + p * 82 + '%') }); files.push({ blob: r.blob, name: fileName(card, 'envelope', 0, r.ext) }); }
+        else if (kind === 'envelope') { const html = await buildEnvelopeHTML(card, envOpts()); const cover = await buildCover(card, { envelope: env, to: card.data?.guest || '' }); files.push({ blob: cover, name: fileName(card, 'envelope', 0, 'jpg') }, { blob: new Blob([html], { type: 'text/html' }), name: fileName(card, 'envelope', 0, 'html') }); }
         else if (kind === 'pdf' || kind === 'print') { const blob = await renderPDF(card, { print: kind === 'print' }); files.push({ blob, name: fileName(card, kind === 'print' ? 'print' : 'pdf', 0, 'pdf') }); }
         else if (kind === 'zip') { const parts = []; for (let i = 0; i < n; i++) { const b = await renderBlob(card, i, 'png'); parts.push({ name: fileName(card, 'png', i), data: new Uint8Array(await b.arrayBuffer()) }); bar.style.width = 10 + (i / n) * 80 + '%'; } files.push({ blob: new Blob([zipStore(parts)], { type: 'application/zip' }), name: `${(card.name || 'cards').replace(/\s+/g, '_')}.zip` }); }
         else for (let i = 0; i < n; i++) { const blob = await renderBlob(card, i, kind); files.push({ blob, name: fileName(card, kind, i) }); bar.style.width = 10 + (i / n) * 80 + '%'; }
         bar.style.width = '95%';
         if (kind === 'print') { if (action === 'share') await shareFiles(files, { title: card.name || 'CardStudio' }); else { const urls = []; for (let i = 0; i < n; i++) urls.push(renderVariant(card, i, 'print', { width: 1700 }).toDataURL('image/jpeg', 0.9)); await printImages(urls, files[0].blob); } }
-        else if (action === 'share') await shareFiles(files, { title: card.name || occName(occById[card.occasion], card.lang), text: kind === 'envelope' ? (SHARE_TEXT[card.lang] || SHARE_TEXT.en) : '' });
+        else if (action === 'share') await shareFiles(files, { title: card.name || occName(occById[card.occasion], card.lang), text: kind === 'envelope' ? (SHARE_TEXT[card.lang] || SHARE_TEXT.en) : kind === 'envvideo' ? (SHARE_VIDEO_TEXT[card.lang] || SHARE_VIDEO_TEXT.en) : '' });
         else { let where = ''; for (const f of files) { const r = await saveToDevice(f.blob, f.name); if (!r.ok) throw new Error(r.error || 'save failed'); where = r.where; } toast(`${t('savedTo')} ${where === 'gallery' ? t('gallery') : where === 'documents' ? 'Documents/CardStudio' : where === 'download' ? 'Downloads' : ''}`, 3200); }
         bar.style.width = '100%';
       } catch (e) { if (e?.name !== 'AbortError') toast(t('failed') + ': ' + (e.message || e), 4000); }

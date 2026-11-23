@@ -45,8 +45,8 @@ export function envelopeFor(card) {
 const UI = { fa: 'برای باز کردن پاکت لمس کنید', en: 'Tap the envelope to open', ar: 'المس المغلف لفتحه', tr: 'Açmak için zarfa dokunun', ru: 'Нажмите на конверт, чтобы открыть', fr: 'Touchez l’enveloppe pour l’ouvrir', de: 'Tippen Sie auf den Umschlag zum Öffnen' };
 const FOR = { fa: 'برای', en: 'For', ar: 'إلى', tr: 'Sayın', ru: 'Для', fr: 'Pour', de: 'Für' };
 
-const MUSIC_JS = `
-function Music(mood){
+export const MUSIC_JS = `
+function Music(mood,tap){
   const AC=window.AudioContext||window.webkitAudioContext; if(!AC||mood==='none') return {start(){},stop(){},toggle(){return false}};
   const P={
     romantic:{bpm:68,root:60,ch:[[0,4,7,11],[9,0,4,7],[5,9,0,4],[7,11,2,5]],sc:[0,2,4,7,9,11],w:'sine',pad:'sine',swing:0},
@@ -84,7 +84,7 @@ function Music(mood){
   }
   let next=0;
   return {
-    start(){ try{ if(!ctx){ctx=new AC(); master=ctx.createGain(); master.gain.value=0; const d=ctx.createDelay(); d.delayTime.value=.32; const fb=ctx.createGain(); fb.gain.value=.34; const wet=ctx.createGain(); wet.gain.value=.3; master.connect(ctx.destination); master.connect(d); d.connect(fb); fb.connect(d); d.connect(wet); wet.connect(ctx.destination);} ctx.resume(); on=true; next=ctx.currentTime+.05; master.gain.cancelScheduledValues(ctx.currentTime); master.gain.linearRampToValueAtTime(.9,ctx.currentTime+2.5); tick(); }catch(e){} },
+    start(){ try{ if(!ctx){ctx=new AC(); master=ctx.createGain(); master.gain.value=0; const d=ctx.createDelay(); d.delayTime.value=.32; const fb=ctx.createGain(); fb.gain.value=.34; const wet=ctx.createGain(); wet.gain.value=.3; master.connect(ctx.destination); if(tap) tap(ctx,master); master.connect(d); d.connect(fb); fb.connect(d); d.connect(wet); wet.connect(ctx.destination);} ctx.resume(); on=true; next=ctx.currentTime+.05; master.gain.cancelScheduledValues(ctx.currentTime); master.gain.linearRampToValueAtTime(2.2,ctx.currentTime+1.5); tick(); }catch(e){} },
     stop(){ on=false; clearTimeout(timer); if(ctx) master.gain.linearRampToValueAtTime(0,ctx.currentTime+.5); },
     toggle(){ if(on){this.stop();return false}else{this.start();return true} }
   };
@@ -182,3 +182,5 @@ export async function buildCover(card, { envelope = 'auto', to = '', lang = card
   g.font = '54px "Vazirmatn",sans-serif'; g.fillText('🎶', W / 2, ey + eh + 190);
   return await new Promise((res) => c.toBlob(res, 'image/jpeg', 0.9));
 }
+
+export const SHARE_VIDEO_TEXT = { fa: '✉️ یک کارت ویژه برای شما 🎶', en: '✉️ A special card for you 🎶', ar: '✉️ بطاقة خاصة لك 🎶', tr: '✉️ Size özel bir kart 🎶', ru: '✉️ Особая открытка для вас 🎶', fr: '✉️ Une carte spéciale pour vous 🎶', de: '✉️ Eine besondere Karte für Sie 🎶' };
